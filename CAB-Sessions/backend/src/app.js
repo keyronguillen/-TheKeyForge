@@ -5,7 +5,7 @@
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
-import { config } from './config/index.js';
+import { corsOptions } from './config/index.js';
 import { apiRouter } from './routes/index.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
@@ -14,7 +14,8 @@ export function createApp() {
 
   // ── Security baseline ──
   app.use(helmet());                       // secure HTTP headers
-  app.use(cors({ origin: config.clientOrigins, credentials: true })); // lock CORS to the SPA origin(s)
+  app.use(cors(corsOptions));              // allow the SPA origin(s); also answers preflight
+  app.options('*', cors(corsOptions));     // explicitly handle CORS preflight (OPTIONS)
   app.use(express.json({ limit: '256kb' })); // cap body size (DoS hardening)
 
   // ── API ──

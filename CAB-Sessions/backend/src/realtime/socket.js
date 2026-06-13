@@ -7,7 +7,7 @@
  */
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
-import { config } from '../config/index.js';
+import { corsOptions } from '../config/index.js';
 import { logger } from '../utils/logger.js';
 
 /** Event name constants shared with the frontend (keep in sync). */
@@ -23,9 +23,7 @@ class Realtime {
 
   /** Attach Socket.IO to the HTTP server. */
   init(httpServer) {
-    this.#io = new Server(httpServer, {
-      cors: { origin: config.clientOrigins, credentials: true },
-    });
+    this.#io = new Server(httpServer, { cors: corsOptions });
 
     // Authenticate every socket using the JWT passed in the handshake.
     this.#io.use((socket, next) => {
