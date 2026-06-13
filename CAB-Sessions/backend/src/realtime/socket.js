@@ -24,7 +24,7 @@ class Realtime {
   /** Attach Socket.IO to the HTTP server. */
   init(httpServer) {
     this.#io = new Server(httpServer, {
-      cors: { origin: config.clientOrigin, credentials: true },
+      cors: { origin: config.clientOrigins, credentials: true },
     });
 
     // Authenticate every socket using the JWT passed in the handshake.

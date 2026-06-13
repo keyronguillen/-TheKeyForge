@@ -30,7 +30,7 @@ function start() {
 
   server.listen(config.port, () => {
     logger.info(`CAB-Sessions API listening on http://localhost:${config.port}`);
-    logger.info(`Allowed client origin: ${config.clientOrigin}`);
+    logger.info(`Allowed client origins: ${config.clientOrigins.join(', ')}`);
   });
 
   // Graceful shutdown.

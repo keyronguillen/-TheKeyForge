@@ -14,7 +14,7 @@ export function createApp() {
 
   // ── Security baseline ──
   app.use(helmet());                       // secure HTTP headers
-  app.use(cors({ origin: config.clientOrigin, credentials: true })); // lock CORS to the SPA
+  app.use(cors({ origin: config.clientOrigins, credentials: true })); // lock CORS to the SPA origin(s)
   app.use(express.json({ limit: '256kb' })); // cap body size (DoS hardening)
 
   // ── API ──
