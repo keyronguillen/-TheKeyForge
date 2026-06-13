@@ -4,7 +4,7 @@
  */
 import { useEffect } from 'react';
 import { io } from 'socket.io-client';
-import { tokenStore } from '../api/client.js';
+import { tokenStore, API_BASE } from '../api/client.js';
 
 const EVENTS = ['ticket:created', 'ticket:updated', 'approval:decided'];
 
@@ -13,7 +13,9 @@ export function useRealtime(onChange) {
     const token = tokenStore.get();
     if (!token) return undefined;
 
-    const socket = io('/', { auth: { token } });
+    // Connect to the backend's Socket.IO. In production API_BASE points at the
+    // Render backend; in local dev it's '' and Vite proxies /socket.io.
+    const socket = io(API_BASE || '/', { auth: { token } });
     const handler = (payload) => onChange?.(payload);
     EVENTS.forEach((ev) => socket.on(ev, handler));
 
