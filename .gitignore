@@ -141,3 +141,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Allow the committed production API URL for the CAB-Sessions frontend (public, not a secret)
+!CAB-Sessions/frontend/.env.production
