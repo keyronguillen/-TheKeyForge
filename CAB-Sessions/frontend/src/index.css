@@ -1,0 +1,110 @@
+/* ============================================================================
+   CAB-Sessions design system — a small, dependency-free responsive stylesheet.
+   Mobile-first; layout adapts up to desktop via a couple of breakpoints.
+   ========================================================================== */
+:root {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface-2: #273449;
+  --border: #334155;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --green: #22c55e;
+  --red: #ef4444;
+  --amber: #f59e0b;
+  --radius: 10px;
+  --shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--text); }
+
+a { color: var(--primary); }
+h1, h2, h3 { margin: 0 0 .5rem; font-weight: 600; }
+small { color: var(--muted); }
+
+/* ── Buttons ── */
+button {
+  font: inherit; cursor: pointer; border: none; border-radius: 8px;
+  padding: .55rem 1rem; background: var(--primary); color: white; font-weight: 500;
+  transition: background .15s ease, opacity .15s ease;
+}
+button:hover { background: var(--primary-hover); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+button.ghost:hover { background: var(--surface-2); }
+button.danger { background: var(--red); }
+button.small { padding: .35rem .7rem; font-size: .85rem; }
+
+/* ── Forms ── */
+label { display: block; font-size: .85rem; color: var(--muted); margin: .6rem 0 .25rem; }
+input, select, textarea {
+  width: 100%; padding: .6rem .7rem; background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 8px; color: var(--text); font: inherit;
+}
+textarea { min-height: 80px; resize: vertical; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); border-color: transparent; }
+
+/* ── Cards ── */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow); }
+
+/* ── Auth screens (centered) ── */
+.auth-wrap { min-height: 100%; display: grid; place-items: center; padding: 1rem; }
+.auth-card { width: 100%; max-width: 420px; }
+.brand { display:flex; align-items:center; gap:.6rem; margin-bottom: 1rem; }
+.brand .logo { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg,#3b82f6,#22c55e); }
+.error { color: #fecaca; background: rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.4); padding:.6rem .75rem; border-radius:8px; margin:.75rem 0; font-size:.9rem; }
+.muted-link { background:none; color: var(--primary); padding:0; font-weight:500; }
+
+/* ── App shell ── */
+.app { display: flex; flex-direction: column; min-height: 100%; }
+.topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: .75rem 1rem; background: var(--surface); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 10;
+}
+.topbar .user { display:flex; align-items:center; gap:.6rem; font-size:.9rem; }
+.role-pill { font-size:.72rem; padding:.15rem .5rem; border-radius:999px; background: var(--surface-2); border:1px solid var(--border); color: var(--muted); }
+.content { padding: 1rem; max-width: 1200px; width: 100%; margin: 0 auto; }
+
+/* ── Tabs ── */
+.tabs { display:flex; gap:.25rem; border-bottom:1px solid var(--border); margin-bottom:1rem; overflow-x:auto; }
+.tab { padding:.6rem 1rem; background:none; color: var(--muted); border-radius:0; border-bottom:2px solid transparent; white-space:nowrap; }
+.tab:hover { background: transparent; color: var(--text); }
+.tab.active { color: var(--text); border-bottom-color: var(--primary); }
+
+/* ── Table (Tab 1) ── */
+.table-scroll { overflow-x:auto; border:1px solid var(--border); border-radius: var(--radius); }
+table { border-collapse: collapse; width: 100%; min-width: 820px; font-size:.88rem; }
+th, td { text-align:left; padding:.6rem .7rem; border-bottom:1px solid var(--border); vertical-align: top; }
+th { background: var(--surface-2); color: var(--muted); font-weight:600; position: sticky; top:0; }
+tbody tr:hover { background: var(--surface-2); cursor: pointer; }
+tbody tr.selected { background: rgba(59,130,246,.15); }
+
+/* ── Status chips ── */
+.chip { font-size:.72rem; padding:.15rem .55rem; border-radius:999px; font-weight:600; display:inline-block; }
+.chip.approved { background: rgba(34,197,94,.15); color:#86efac; }
+.chip.rejected { background: rgba(239,68,68,.15); color:#fca5a5; }
+.chip.to_be_reviewed, .chip.pending { background: rgba(245,158,11,.15); color:#fcd34d; }
+.chip.new { background: rgba(148,163,184,.15); color: var(--muted); }
+.chip.in_review { background: rgba(59,130,246,.15); color:#93c5fd; }
+.chip.decided { background: rgba(34,197,94,.15); color:#86efac; }
+
+/* ── Layout helpers ── */
+.row { display:flex; gap:1rem; flex-wrap:wrap; }
+.row > * { flex:1 1 240px; }
+.stack { display:flex; flex-direction:column; gap:.5rem; }
+.between { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+.grid-2 { display:grid; grid-template-columns:1fr; gap:1rem; }
+@media (min-width: 760px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+.spacer { flex:1; }
+.center { text-align:center; }
+.qr { display:block; margin: 1rem auto; width: 200px; height:200px; background:white; border-radius:8px; padding:8px; }
+.kv { display:grid; grid-template-columns: 160px 1fr; gap:.35rem .75rem; font-size:.9rem; }
+.kv dt { color: var(--muted); }
+.toast { position: fixed; bottom: 1rem; right: 1rem; background: var(--surface); border:1px solid var(--border); padding:.7rem 1rem; border-radius:8px; box-shadow: var(--shadow); font-size:.9rem; z-index: 50; }
+.empty { padding:2rem; text-align:center; color: var(--muted); }

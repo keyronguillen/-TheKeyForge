@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(npm install *)",
+      "Bash(cp .env.example .env)",
+      "Bash(npm run *)",
+      "Bash(ls \"C:/Users/keyro/.claude/projects/D--ClaudeProjects/memory/\" 2>/dev/null || echo \"NO_MEMORY_DIR\")"
+    ]
+  }
+}
