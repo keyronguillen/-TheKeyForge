@@ -30,6 +30,7 @@ export const CAP = Object.freeze({
   DECIDE: 'decide',             // make an approval decision (Tab 3)
   PUSH_INTEGRATION: 'push_integration', // push decision to SNOW/ADO
   MANAGE_USERS: 'manage_users', // admin: users & roles
+  USE_AI: 'use_ai',             // run the Claude AI assistant (draft/feedback/report)
 });
 
 /**
@@ -43,6 +44,7 @@ const MATRIX = {
   [CAP.DECIDE]: [ROLES.ADMIN, ROLES.APPROVER, ROLES.COMPLIANCE],
   [CAP.PUSH_INTEGRATION]: [ROLES.ADMIN, ROLES.ACTOR, ROLES.APPROVER],
   [CAP.MANAGE_USERS]: [ROLES.ADMIN],
+  [CAP.USE_AI]: [ROLES.ADMIN, ROLES.COMPLIANCE, ROLES.REVIEWER, ROLES.APPROVER],
 };
 
 /** True if `role` is allowed to perform `capability`. Admin can do anything. */

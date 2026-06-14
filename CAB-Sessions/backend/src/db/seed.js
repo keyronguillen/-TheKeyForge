@@ -12,6 +12,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import bcrypt from 'bcryptjs';
 import { db } from './database.js';
+import { runMigrations } from './migrate.js';
 import { ALL_ROLES, ROLES } from '../constants/roles.js';
 import { logger } from '../utils/logger.js';
 
@@ -21,6 +22,7 @@ function applySchema() {
   const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
   db.connect();
   db.exec(schema);
+  runMigrations();
 }
 
 function seedRoles() {

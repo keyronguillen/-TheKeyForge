@@ -59,9 +59,24 @@ CREATE TABLE IF NOT EXISTS ticket_reviews (
   compliance_process TEXT,   -- 2. Compliance process
   what_it_fixes      TEXT,   -- 3. What the update fixes
   what_deprecated    TEXT,   -- 4. What is deprecated
+  ai_feedback        TEXT,   -- AI-generated risks / questions / recommendation (Claude)
+  ai_generated_at    TEXT,   -- when ai_feedback was last produced
   updated_by         INTEGER REFERENCES users(id),
   updated_at         TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- ─── AI insights history (audit trail of every Claude generation) ───────────
+-- kind: 'draft_review' | 'feedback' | 'cab_report'. Append-only.
+CREATE TABLE IF NOT EXISTS ai_insights (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  ticket_id   INTEGER REFERENCES cab_tickets(id) ON DELETE CASCADE, -- NULL for whole-CAB reports
+  kind        TEXT NOT NULL,
+  content     TEXT NOT NULL,           -- JSON (draft) or markdown (feedback/report)
+  model       TEXT,                    -- model id used, e.g. claude-haiku-4-5
+  created_by  INTEGER REFERENCES users(id),
+  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_ai_insights_ticket ON ai_insights(ticket_id, kind);
 
 -- ─── Approvals (Section 2 — Tab 3) ──────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS approvals (

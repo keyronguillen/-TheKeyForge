@@ -9,16 +9,19 @@ import { fileURLToPath } from 'node:url';
 import { createApp } from './app.js';
 import { config } from './config/index.js';
 import { db } from './db/database.js';
+import { runMigrations } from './db/migrate.js';
 import { realtime } from './realtime/socket.js';
 import { logger } from './utils/logger.js';
+import { isAiEnabled } from './config/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-/** Apply schema.sql so the app is runnable even before `npm run seed`. */
+/** Apply schema.sql + additive migrations so the app is runnable on any DB age. */
 function ensureSchema() {
   const schema = fs.readFileSync(path.join(__dirname, 'db', 'schema.sql'), 'utf8');
   db.connect();
   db.exec(schema);
+  runMigrations();
 }
 
 function start() {
@@ -31,6 +34,7 @@ function start() {
   server.listen(config.port, () => {
     logger.info(`CAB-Sessions API listening on http://localhost:${config.port}`);
     logger.info(`Allowed client origins: ${config.clientOrigins.join(', ')}`);
+    logger.info(`AI assistant: ${isAiEnabled ? `enabled (${config.ai.model})` : 'disabled (set ANTHROPIC_API_KEY)'}`);
   });
 
   // Graceful shutdown.

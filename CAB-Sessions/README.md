@@ -26,6 +26,22 @@ workflow, with role-based access, MFA, and live (real-time) updates during the m
 3. **Approval** — approve / reject / to-be-reviewed dropdown, email notification of the decision,
    decision timestamp, and (stubbed) push of the decision back to ServiceNow & ADO.
 
+## AI assistant (Claude)
+
+Powered by Claude (Anthropic SDK, model **Haiku 4.5** by default). Available to roles
+`Admin / Compliance / Reviewer / Approver` when the backend has an `ANTHROPIC_API_KEY`:
+
+- **✨ Draft with AI** (Tab 2) — pre-fills the four review fields from the ticket's SNOW/ADO text.
+- **🧠 AI feedback** (Tab 2) — risks, missing info, questions and a recommendation; saved on the ticket.
+- **📄 AI CAB report** — a post-CAB executive summary across all tickets (copy-to-clipboard).
+
+If no key is set, AI features self-disable and the rest of the app works normally. The key lives
+**only on the backend** (never the frontend). Every generation is logged to the `ai_insights` audit
+table. **GDPR note:** ticket text is sent to Anthropic for processing — keep real PII out of POC
+tickets and document the data-processing dependency in any compliance review.
+
+To enable: set `ANTHROPIC_API_KEY` (and optionally `AI_MODEL`) in the backend environment.
+
 ## Roles (Section 3)
 
 `Admin`, `Compliance`, `Approver`, `Reviewer`, `Actor`, `Business`, `Reader`.

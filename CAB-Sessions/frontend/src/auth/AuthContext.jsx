@@ -57,4 +57,5 @@ export const CAP = Object.freeze({
   DECIDE: 'decide',
   PUSH_INTEGRATION: 'push_integration',
   MANAGE_USERS: 'manage_users',
+  USE_AI: 'use_ai',
 });

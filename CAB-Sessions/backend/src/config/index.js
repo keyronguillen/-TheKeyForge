@@ -45,9 +45,21 @@ export const config = Object.freeze({
     from: env('MAIL_FROM', 'cab-no-reply@cab.local'),
     smtpHost: env('SMTP_HOST', ''),
   },
+
+  // AI assistant (Anthropic / Claude). The key lives ONLY on the backend so it
+  // is never exposed to the browser. If absent, AI features self-disable and
+  // the rest of the app keeps working (feature flag).
+  ai: {
+    apiKey: env('ANTHROPIC_API_KEY', ''),
+    // User chose Haiku 4.5 for the POC (fast + low cost). Override via AI_MODEL.
+    model: env('AI_MODEL', 'claude-haiku-4-5'),
+  },
 });
 
 export const isProd = config.env === 'production';
+
+/** True when an Anthropic API key is configured (AI features available). */
+export const isAiEnabled = Boolean(config.ai.apiKey);
 
 /**
  * CORS origin allow-list check, used by both Express and Socket.IO.

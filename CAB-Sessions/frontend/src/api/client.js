@@ -46,3 +46,11 @@ export const api = {
   put: (path, body) => request('PUT', path, body),
   del: (path) => request('DELETE', path),
 };
+
+/** AI assistant calls (Claude, server-side). */
+export const ai = {
+  status: () => request('GET', '/ai/status'),
+  draftReview: (ticketId) => request('POST', `/tickets/${ticketId}/ai/draft-review`),
+  feedback: (ticketId) => request('POST', `/tickets/${ticketId}/ai/feedback`),
+  report: () => request('POST', '/ai/cab-report'),
+};

@@ -4,6 +4,7 @@ import { authRoutes } from './authRoutes.js';
 import { ticketRoutes } from './ticketRoutes.js';
 import { approvalRoutes } from './approvalRoutes.js';
 import { userRoutes } from './userRoutes.js';
+import { aiRoutes } from './aiRoutes.js';
 
 export const apiRouter = Router();
 
@@ -12,3 +13,4 @@ apiRouter.use('/auth', authRoutes);
 apiRouter.use('/tickets', ticketRoutes);
 apiRouter.use('/tickets', approvalRoutes); // /tickets/:id/decision
 apiRouter.use('/admin', userRoutes);
+apiRouter.use('/', aiRoutes); // /ai/status, /tickets/:id/ai/*, /ai/cab-report

@@ -4,11 +4,13 @@
  * the same board during the meeting.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { api } from '../api/client.js';
+import { api, ai } from '../api/client.js';
+import { useAuth, CAP } from '../auth/AuthContext.jsx';
 import { useRealtime } from '../realtime/useRealtime.js';
 import { TicketTable } from '../components/TicketTable.jsx';
 import { ReviewPanel } from '../components/ReviewPanel.jsx';
 import { ApprovalPanel } from '../components/ApprovalPanel.jsx';
+import { CabReportModal } from '../components/CabReportModal.jsx';
 
 const TABS = [
   { id: 'tickets', label: '1 · Tickets' },
@@ -17,11 +19,15 @@ const TABS = [
 ];
 
 export default function DashboardPage() {
+  const { can } = useAuth();
   const [tickets, setTickets] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [detail, setDetail] = useState(null);
   const [tab, setTab] = useState('tickets');
   const [toast, setToast] = useState('');
+  const [aiEnabled, setAiEnabled] = useState(false);
+  const [report, setReport] = useState(null);          // { text } | null (modal)
+  const [reportBusy, setReportBusy] = useState(false);
 
   const loadTickets = useCallback(async () => {
     const { tickets } = await api.get('/tickets');
@@ -37,6 +43,20 @@ export default function DashboardPage() {
 
   useEffect(() => { loadTickets(); }, [loadTickets]);
   useEffect(() => { loadDetail(selectedId); }, [selectedId, loadDetail]);
+  // Probe whether the AI assistant is configured on the backend.
+  useEffect(() => { ai.status().then((s) => setAiEnabled(s.enabled)).catch(() => setAiEnabled(false)); }, []);
+
+  const generateReport = async () => {
+    setReportBusy(true);
+    try {
+      const { report } = await ai.report();
+      setReport(report);
+    } catch (err) {
+      showToast(err.message);
+    } finally {
+      setReportBusy(false);
+    }
+  };
 
   // Real-time: refresh the board (and the open ticket) on any change.
   const onRealtime = useCallback(() => {
@@ -51,18 +71,26 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <nav className="tabs">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            className={`tab ${tab === t.id ? 'active' : ''}`}
-            onClick={() => setTab(t.id)}
-            disabled={t.id !== 'tickets' && !selectedId}
-          >
-            {t.label}
+      <div className="between" style={{ alignItems: 'flex-end' }}>
+        <nav className="tabs" style={{ flex: 1 }}>
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              className={`tab ${tab === t.id ? 'active' : ''}`}
+              onClick={() => setTab(t.id)}
+              disabled={t.id !== 'tickets' && !selectedId}
+            >
+              {t.label}
+            </button>
+          ))}
+        </nav>
+        {aiEnabled && can(CAP.USE_AI) && (
+          <button className="ghost small" onClick={generateReport} disabled={reportBusy}
+            style={{ marginBottom: '.4rem' }}>
+            {reportBusy ? 'Generating…' : '📄 AI CAB report'}
           </button>
-        ))}
-      </nav>
+        )}
+      </div>
 
       {tab === 'tickets' && (
         <TicketTable
@@ -75,7 +103,7 @@ export default function DashboardPage() {
 
       {tab === 'review' && (
         detail
-          ? <ReviewPanel ticket={detail} onSaved={refreshAll} />
+          ? <ReviewPanel ticket={detail} onSaved={refreshAll} aiEnabled={aiEnabled} />
           : <div className="empty">Select a ticket on the Tickets tab first.</div>
       )}
 
@@ -93,6 +121,7 @@ export default function DashboardPage() {
       )}
 
       {toast && <div className="toast">{toast}</div>}
+      {report && <CabReportModal text={report} onClose={() => setReport(null)} />}
     </div>
   );
 }

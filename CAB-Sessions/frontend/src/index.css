@@ -108,3 +108,8 @@ tbody tr.selected { background: rgba(59,130,246,.15); }
 .kv dt { color: var(--muted); }
 .toast { position: fixed; bottom: 1rem; right: 1rem; background: var(--surface); border:1px solid var(--border); padding:.7rem 1rem; border-radius:8px; box-shadow: var(--shadow); font-size:.9rem; z-index: 50; }
 .empty { padding:2rem; text-align:center; color: var(--muted); }
+
+/* ── Modal (AI CAB report) ── */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: grid; place-items: center; padding: 1rem; z-index: 100; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.25rem; width: 100%; max-width: 680px; max-height: 85vh; overflow: auto; }
+code { background: var(--surface-2); padding: .1rem .35rem; border-radius: 4px; font-size: .85em; }
