@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- SEO basics demonstrated (Section 1 fixes applied) -->
+  <title>SmileMalta Clinic | Dental & Aesthetic Care in Sliema, Malta</title>
+  <meta name="description" content="SmileMalta — modern dental & aesthetic clinic in Sliema, Malta. Book online 24/7, check live availability, cosmetic dentistry, implants & whitening." />
+  <meta name="theme-color" content="#0ea5a4" />
+  <meta property="og:title" content="SmileMalta Clinic | Dental & Aesthetic Care in Sliema" />
+  <meta property="og:description" content="Book your appointment online with Malta's modern dental & aesthetic clinic." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://images.unsplash.com" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <!-- Structured data: the #1 SEO gap found in all 5 audited clinics -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Dentist",
+    "name": "SmileMalta Clinic",
+    "image": "https://images.unsplash.com/photo-1629909613654-28e377c37b09",
+    "address": {"@type": "PostalAddress", "streetAddress": "High Street", "addressLocality": "Sliema", "addressCountry": "MT"},
+    "telephone": "+356 2700 0000",
+    "openingHours": "Mo-Sa 08:00-19:00",
+    "priceRange": "€€",
+    "aggregateRating": {"@type": "AggregateRating", "ratingValue": "5.0", "reviewCount": "187"}
+  }
+  </script>
+</head>
+<body>
+
+  <!-- ============ HEADER ============ -->
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a href="#top" class="brand" aria-label="SmileMalta home">
+        <span class="brand-mark">◗</span> Smile<strong>Malta</strong>
+      </a>
+
+      <nav class="nav" id="primary-nav" aria-label="Primary">
+        <a href="#services">Services</a>
+        <a href="#clinics">Clinics</a>
+        <a href="#booking">Book</a>
+        <a href="#reviews">Reviews</a>
+        <a href="#contact">Contact</a>
+      </nav>
+
+      <div class="header-actions">
+        <button class="btn btn-ghost" data-open-auth="login">Log in</button>
+        <button class="btn btn-primary" data-open-auth="signup">Sign up</button>
+        <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="container hero-inner">
+      <div class="hero-copy">
+        <span class="pill">Sliema · Malta</span>
+        <h1>A brighter smile, booked in <span class="accent">60 seconds</span>.</h1>
+        <p>Modern dental &amp; aesthetic care with transparent pricing. Check live availability
+           and book your visit online — any time, any device.</p>
+        <div class="hero-cta">
+          <a href="#booking" class="btn btn-primary btn-lg">Book an appointment</a>
+          <a href="#services" class="btn btn-outline btn-lg">Our services</a>
+        </div>
+        <ul class="hero-trust">
+          <li>★ 5.0 · 187 reviews</li>
+          <li>🔒 Secure &amp; GDPR-ready</li>
+          <li>🗣️ EN · MT · IT</li>
+        </ul>
+      </div>
+      <div class="hero-media">
+        <img src="https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=900&q=70"
+             alt="Bright, modern dental clinic treatment room in Malta" loading="eager" />
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SERVICES ============ -->
+  <section class="section" id="services">
+    <div class="container">
+      <header class="section-head">
+        <h2>Treatments &amp; services</h2>
+        <p>Everything from routine check-ups to full smile makeovers.</p>
+      </header>
+      <div class="grid grid-3">
+        <article class="card service">
+          <div class="ico">🦷</div><h3>General Dentistry</h3>
+          <p>Check-ups, cleaning, fillings and preventive care for the whole family.</p>
+        </article>
+        <article class="card service">
+          <div class="ico">✨</div><h3>Cosmetic &amp; Whitening</h3>
+          <p>Veneers, whitening and smile makeovers for a confident, natural look.</p>
+        </article>
+        <article class="card service">
+          <div class="ico">🔩</div><h3>Dental Implants</h3>
+          <p>Permanent, natural-feeling tooth replacement by specialist implantologists.</p>
+        </article>
+        <article class="card service">
+          <div class="ico">😬</div><h3>Invisalign &amp; Ortho</h3>
+          <p>Discreet, clear aligners to straighten your smile on your schedule.</p>
+        </article>
+        <article class="card service">
+          <div class="ico">💆</div><h3>Medical Aesthetics</h3>
+          <p>Skin and facial aesthetic treatments delivered by qualified clinicians.</p>
+        </article>
+        <article class="card service">
+          <div class="ico">🩺</div><h3>Consultations</h3>
+          <p>Honest, no-pressure advice and a clear written treatment plan.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CLINICS CAROUSEL (the 5 real example clinics) ============ -->
+  <section class="section section-tint" id="clinics">
+    <div class="container">
+      <header class="section-head">
+        <h2>Trusted clinics across Malta</h2>
+        <p>A showcase of leading dental &amp; aesthetic clinics in the Sliema area.</p>
+      </header>
+
+      <div class="carousel" id="carousel">
+        <button class="car-btn prev" aria-label="Previous">‹</button>
+        <div class="car-track" id="carTrack">
+          <article class="car-slide card">
+            <h3>ForteDent</h3><span class="muted">Sliema · High Street</span>
+            <p>General &amp; cosmetic dentistry · 5.0★ · 11 languages spoken.</p>
+          </article>
+          <article class="car-slide card">
+            <h3>Signature Dental</h3><span class="muted">Sliema</span>
+            <p>Smile makeovers &amp; cosmetic excellence · transparent pricing.</p>
+          </article>
+          <article class="car-slide card">
+            <h3>ProDent Care</h3><span class="muted">San Gwann</span>
+            <p>Dental implants &amp; implantology · 30+ patient stories.</p>
+          </article>
+          <article class="car-slide card">
+            <h3>Regional Dental Clinic</h3><span class="muted">Swieqi</span>
+            <p>Cosmetic dentistry with cutting-edge equipment.</p>
+          </article>
+          <article class="car-slide card">
+            <h3>Dental Implantology Unit</h3><span class="muted">Sliema · St James</span>
+            <p>Specialist implantology within a leading private hospital.</p>
+          </article>
+        </div>
+        <button class="car-btn next" aria-label="Next">›</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BOOKING (datetime picker + availability calendar) ============ -->
+  <section class="section" id="booking">
+    <div class="container">
+      <header class="section-head">
+        <h2>Book your appointment</h2>
+        <p>Pick a treatment and time on the left; the calendar shows live availability on the right.</p>
+      </header>
+
+      <div class="booking-grid">
+        <!-- Booking form -->
+        <form class="card booking-form" id="bookingForm" novalidate>
+          <label>Treatment
+            <select id="treatment" required>
+              <option value="">Select…</option>
+              <option>General check-up</option>
+              <option>Whitening</option>
+              <option>Implant consultation</option>
+              <option>Invisalign consultation</option>
+              <option>Aesthetic consultation</option>
+            </select>
+          </label>
+          <label>Full name
+            <input type="text" id="fullname" placeholder="Your name" required />
+          </label>
+          <label>Email
+            <input type="email" id="email" placeholder="you@email.com" required />
+          </label>
+          <div class="row-2">
+            <label>Date
+              <input type="date" id="bookDate" required />
+            </label>
+            <label>Time
+              <select id="bookTime" required>
+                <option value="">--:--</option>
+                <option>08:30</option><option>09:30</option><option>10:30</option>
+                <option>11:30</option><option>14:00</option><option>15:00</option>
+                <option>16:00</option><option>17:00</option>
+              </select>
+            </label>
+          </div>
+          <label class="check">
+            <input type="checkbox" id="consent" required />
+            <span>I consent to SmileMalta storing my data to manage this booking
+              (<a href="#privacy">Privacy Policy</a>). <abbr title="EU GDPR">GDPR</abbr></span>
+          </label>
+          <button type="submit" class="btn btn-primary btn-lg btn-block">Confirm booking</button>
+          <p class="form-msg" id="bookingMsg" role="status"></p>
+        </form>
+
+        <!-- Availability calendar (admin-driven in real backend; read-only client view) -->
+        <div class="card calendar" id="calendar" aria-label="Availability calendar">
+          <div class="cal-head">
+            <button class="cal-nav" id="calPrev" aria-label="Previous month">‹</button>
+            <strong id="calTitle">Month</strong>
+            <button class="cal-nav" id="calNext" aria-label="Next month">›</button>
+          </div>
+          <div class="cal-dow"><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span></div>
+          <div class="cal-grid" id="calGrid"></div>
+          <div class="cal-legend">
+            <span><i class="dot ok"></i> Available</span>
+            <span><i class="dot low"></i> Few slots</span>
+            <span><i class="dot full"></i> Full</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ REVIEWS ============ -->
+  <section class="section section-tint" id="reviews">
+    <div class="container">
+      <header class="section-head"><h2>What patients say</h2></header>
+      <div class="grid grid-3">
+        <blockquote class="card quote">★★★★★<p>"Booked online in a minute, zero waiting room time. Spotless clinic."</p><cite>— Maria, Sliema</cite></blockquote>
+        <blockquote class="card quote">★★★★★<p>"Transparent pricing for my implants. No surprises, great result."</p><cite>— James, UK</cite></blockquote>
+        <blockquote class="card quote">★★★★★<p>"They speak Italian and English — made everything so easy."</p><cite>— Giulia, IT</cite></blockquote>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTACT ============ -->
+  <section class="section" id="contact">
+    <div class="container contact-grid">
+      <div>
+        <h2>Visit us</h2>
+        <p>High Street, Sliema, Malta</p>
+        <p>☎ <a href="tel:+35627000000">+356 2700 0000</a><br />
+           ✉ <a href="mailto:hello@smilemalta.example">hello@smilemalta.example</a></p>
+        <p>Mon–Sat · 08:00–19:00</p>
+        <a class="btn btn-outline" href="#booking">Book now</a>
+      </div>
+      <div class="map-embed" aria-label="Map placeholder">
+        <span>🗺️ Map / Google Business Profile embed</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER (sticky at bottom) ============ -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <span class="brand brand-light"><span class="brand-mark">◗</span> Smile<strong>Malta</strong></span>
+        <p class="muted">Modern dental &amp; aesthetic care in Sliema, Malta.</p>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <a href="#services">Services</a><a href="#clinics">Clinics</a>
+        <a href="#booking">Book</a><a href="#reviews">Reviews</a>
+      </div>
+      <div>
+        <h4>Legal</h4>
+        <a href="#privacy">Privacy Policy</a><a href="#cookies">Cookie Policy</a>
+        <a href="#">GDPR &amp; Data Rights</a>
+      </div>
+      <div>
+        <h4>Follow</h4>
+        <a href="#">Facebook</a><a href="#">Instagram</a><a href="#">Google Reviews</a>
+      </div>
+    </div>
+    <div class="footer-bar">© <span id="year"></span> SmileMalta · Demo landing page (PoC) · Built for SEO presentation.</div>
+  </footer>
+
+  <!-- ============ AUTH MODAL ============ -->
+  <div class="modal" id="authModal" hidden>
+    <div class="modal-card card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <button class="modal-close" id="authClose" aria-label="Close">×</button>
+      <h3 id="authTitle">Log in</h3>
+      <form id="authForm">
+        <label id="nameField" hidden>Full name<input type="text" /></label>
+        <label>Email<input type="email" required placeholder="you@email.com" /></label>
+        <label>Password<input type="password" required placeholder="••••••••" /></label>
+        <button class="btn btn-primary btn-block" type="submit">Continue</button>
+      </form>
+      <p class="switch-auth">
+        <span id="authSwitchText">No account?</span>
+        <a href="#" id="authSwitch">Sign up</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- ============ GDPR COOKIE BANNER ============ -->
+  <div class="cookie-banner" id="cookieBanner" hidden>
+    <p>We use cookies to improve your experience and measure traffic. See our
+       <a href="#cookies">Cookie Policy</a>.</p>
+    <div class="cookie-actions">
+      <button class="btn btn-ghost" id="cookieReject">Reject</button>
+      <button class="btn btn-primary" id="cookieAccept">Accept</button>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

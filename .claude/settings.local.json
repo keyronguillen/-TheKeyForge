@@ -5,7 +5,14 @@
       "Bash(npm install *)",
       "Bash(cp .env.example .env)",
       "Bash(npm run *)",
-      "Bash(ls \"C:/Users/keyro/.claude/projects/D--ClaudeProjects/memory/\" 2>/dev/null || echo \"NO_MEMORY_DIR\")"
+      "Bash(ls \"C:/Users/keyro/.claude/projects/D--ClaudeProjects/memory/\" 2>/dev/null || echo \"NO_MEMORY_DIR\")",
+      "Bash(curl -s -m 60 -X POST -H 'Origin: https://the-key-forge-44ph5ol9n-kyhwebsites-projects.vercel.app' -H 'Content-Type: application/json' -d '{\"email\":\"admin@cab.local\",\"password\":\"Admin@12345\"}' https://thekeyforge.onrender.com/api/auth/login)",
+      "WebSearch",
+      "WebFetch(domain:www.fortedent.com)",
+      "WebFetch(domain:www.signaturedental.com.mt)",
+      "WebFetch(domain:www.prodentcare.com.mt)",
+      "WebFetch(domain:www.dentistmalta.com)",
+      "WebFetch(domain:www.dentalunitmalta.com)"
     ]
   }
 }
