@@ -73,3 +73,10 @@ export const ado = {
   workItems: () => request('GET', '/ado/workitems'),
   import: (id) => request('POST', `/ado/import/${id}`),
 };
+
+/** ServiceNow (Change Requests) calls, server-side via Basic auth. */
+export const snow = {
+  status: () => request('GET', '/snow/status'),
+  changes: () => request('GET', '/snow/changes'),
+  import: (sysId) => request('POST', `/snow/import/${sysId}`),
+};

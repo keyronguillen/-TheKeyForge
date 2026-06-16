@@ -75,6 +75,15 @@ export const config = Object.freeze({
     clientId: env('ENTRA_CLIENT_ID', ''),
     adminEmails: env('ENTRA_ADMIN_EMAILS', '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean),
   },
+
+  // ServiceNow read-only integration (REST Table API). Credentials live only on
+  // the backend. If any are missing, the feature self-disables.
+  snow: {
+    instanceUrl: env('SNOW_INSTANCE_URL', '').replace(/\/+$/, ''), // e.g. https://dev404273.service-now.com
+    user: env('SNOW_USER', ''),
+    pass: env('SNOW_PASSWORD', ''),
+    table: env('SNOW_TABLE', 'change_request'),                    // CAB source = Change Requests
+  },
 });
 
 export const isProd = config.env === 'production';
@@ -84,6 +93,9 @@ export const isAdoEnabled = Boolean(config.ado.orgUrl && config.ado.project && c
 
 /** True when Entra ID SSO is configured (tenant + client id). */
 export const isEntraEnabled = Boolean(config.entra.tenantId && config.entra.clientId);
+
+/** True when ServiceNow is configured (instance + user + pass). */
+export const isSnowEnabled = Boolean(config.snow.instanceUrl && config.snow.user && config.snow.pass);
 
 /** True when an Anthropic API key is configured (AI features available). */
 export const isAiEnabled = Boolean(config.ai.apiKey);

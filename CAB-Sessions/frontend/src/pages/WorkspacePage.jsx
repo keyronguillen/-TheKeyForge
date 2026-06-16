@@ -5,7 +5,7 @@
  * the active project (the API sends X-Project-Id); live-updates via Socket.IO.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { api, ai, ado } from '../api/client.js';
+import { api, ai, ado, snow } from '../api/client.js';
 import { useAuth, CAP } from '../auth/AuthContext.jsx';
 import { useProject } from '../project/ProjectContext.jsx';
 import { useRealtime } from '../realtime/useRealtime.js';
@@ -14,6 +14,7 @@ import { Sidebar } from '../components/Sidebar.jsx';
 import { OverviewView } from '../components/OverviewView.jsx';
 import { BucketView } from '../components/BucketView.jsx';
 import { AdoView } from '../components/AdoView.jsx';
+import { SnowView } from '../components/SnowView.jsx';
 import { CabReportModal } from '../components/CabReportModal.jsx';
 import { bucketOf } from '../components/buckets.js';
 
@@ -28,6 +29,7 @@ export default function WorkspacePage() {
   const [detail, setDetail] = useState(null);
   const [aiEnabled, setAiEnabled] = useState(false);
   const [adoEnabled, setAdoEnabled] = useState(false);
+  const [snowEnabled, setSnowEnabled] = useState(false);
   const [report, setReport] = useState(null);
   const [reportBusy, setReportBusy] = useState(false);
   const [toast, setToast] = useState('');
@@ -60,6 +62,7 @@ export default function WorkspacePage() {
 
   useEffect(() => { ai.status().then((s) => setAiEnabled(s.enabled)).catch(() => setAiEnabled(false)); }, []);
   useEffect(() => { ado.status().then((s) => setAdoEnabled(s.enabled)).catch(() => setAdoEnabled(false)); }, []);
+  useEffect(() => { snow.status().then((s) => setSnowEnabled(s.enabled)).catch(() => setSnowEnabled(false)); }, []);
 
   // Live refresh on any board change (only matters for the active project).
   const onRealtime = useCallback((payload) => {
@@ -86,7 +89,7 @@ export default function WorkspacePage() {
 
   return (
     <div className="workspace">
-      <Sidebar active={view} onSelect={(v) => { setView(v); setSelectedId(null); }} counts={counts} adoEnabled={adoEnabled} />
+      <Sidebar active={view} onSelect={(v) => { setView(v); setSelectedId(null); }} counts={counts} adoEnabled={adoEnabled} snowEnabled={snowEnabled} />
 
       <main className="work-main">
         <div className="between" style={{ marginBottom: '.5rem' }}>
@@ -104,7 +107,10 @@ export default function WorkspacePage() {
         {view === 'ado' && (
           <AdoView project={active.name} onImported={() => { refreshAll(); setView('present'); }} onToast={showToast} />
         )}
-        {view !== 'overview' && view !== 'ado' && (
+        {view === 'snow' && (
+          <SnowView project={active.name} onImported={() => { refreshAll(); setView('present'); }} onToast={showToast} />
+        )}
+        {view !== 'overview' && view !== 'ado' && view !== 'snow' && (
           <BucketView
             bucket={view}
             tickets={inBucket(view)}

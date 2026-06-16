@@ -7,6 +7,7 @@ import { userRoutes } from './userRoutes.js';
 import { aiRoutes } from './aiRoutes.js';
 import { projectRoutes } from './projectRoutes.js';
 import { adoRoutes } from './adoRoutes.js';
+import { snowRoutes } from './snowRoutes.js';
 
 export const apiRouter = Router();
 
@@ -18,3 +19,4 @@ apiRouter.use('/tickets', approvalRoutes); // /tickets/:id/decision
 apiRouter.use('/admin', userRoutes);
 apiRouter.use('/', aiRoutes); // /ai/status, /tickets/:id/ai/*, /ai/cab-report
 apiRouter.use('/', adoRoutes); // /ado/status, /ado/workitems, /ado/import/:id
+apiRouter.use('/', snowRoutes); // /snow/status, /snow/changes, /snow/import/:sysId

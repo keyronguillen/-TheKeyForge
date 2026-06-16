@@ -12,11 +12,13 @@ const ITEMS = [
   { id: 'declined', label: 'Declined / Review', icon: '✗', countKey: 'declined' },
 ];
 
-export function Sidebar({ active, onSelect, counts, adoEnabled }) {
-  // Azure Boards is shown only when the backend has an ADO connection.
-  const items = adoEnabled
-    ? [...ITEMS, { id: 'ado', label: 'Azure Boards', icon: '⟴' }]
-    : ITEMS;
+export function Sidebar({ active, onSelect, counts, adoEnabled, snowEnabled }) {
+  // External-source views appear only when their backend connection is set up.
+  const items = [
+    ...ITEMS,
+    ...(adoEnabled ? [{ id: 'ado', label: 'Azure Boards', icon: '⟴' }] : []),
+    ...(snowEnabled ? [{ id: 'snow', label: 'ServiceNow', icon: '❖' }] : []),
+  ];
   return (
     <nav className="sidebar">
       {items.map((it) => (
