@@ -109,6 +109,28 @@ tbody tr.selected { background: rgba(59,130,246,.15); }
 .toast { position: fixed; bottom: 1rem; right: 1rem; background: var(--surface); border:1px solid var(--border); padding:.7rem 1rem; border-radius:8px; box-shadow: var(--shadow); font-size:.9rem; z-index: 50; }
 .empty { padding:2rem; text-align:center; color: var(--muted); }
 
+/* ── Workspace: sidebar + main ── */
+.workspace { display: flex; gap: 1rem; align-items: flex-start; }
+.sidebar { display: flex; flex-direction: column; gap: .25rem; min-width: 210px; position: sticky; top: 70px; }
+@media (max-width: 760px) {
+  .workspace { flex-direction: column; }
+  .sidebar { flex-direction: row; flex-wrap: wrap; min-width: 0; position: static; }
+}
+.side-item {
+  display: flex; align-items: center; gap: .6rem; width: 100%;
+  background: var(--surface); border: 1px solid var(--border); color: var(--text);
+  border-radius: 8px; padding: .6rem .75rem; text-align: left;
+}
+.side-item:hover { background: var(--surface-2); }
+.side-item.active { border-color: var(--primary); background: rgba(59,130,246,.12); }
+.side-icon { width: 1.1rem; text-align: center; color: var(--muted); }
+.side-label { flex: 1; }
+.side-count { font-size: .75rem; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; padding: .05rem .5rem; color: var(--muted); }
+.work-main { flex: 1; min-width: 0; }
+.project-chip { font-size: .8rem; padding: .2rem .6rem; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); }
+.mini-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; width: 100%; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: .4rem .6rem; font-size: .85rem; }
+.mini-row:hover { background: var(--border); }
+
 /* ── Modal (AI CAB report) ── */
 .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: grid; place-items: center; padding: 1rem; z-index: 100; }
 .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.25rem; width: 100%; max-width: 680px; max-height: 85vh; overflow: auto; }

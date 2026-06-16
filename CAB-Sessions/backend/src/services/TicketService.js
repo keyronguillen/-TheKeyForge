@@ -1,6 +1,9 @@
 /**
  * Business logic for CAB tickets (Section 1 table + Tab 2 review).
- * Emits real-time events so every connected CAB participant sees changes live.
+ *
+ * Every method is scoped to a project_id. Reads/writes that target a ticket
+ * first verify it belongs to the caller's active project (tenant isolation).
+ * Emits real-time events so connected participants see changes live.
  */
 import { TicketRepository } from '../repositories/TicketRepository.js';
 import { ReviewRepository } from '../repositories/ReviewRepository.js';
@@ -15,19 +18,24 @@ export class TicketService {
     this.audit = new AuditRepository();
   }
 
-  list() {
-    return this.tickets.listForBoard();
+  list(projectId) {
+    return this.tickets.listForProject(projectId);
   }
 
-  getDetail(id) {
-    const detail = this.tickets.findDetail(id);
+  counts(projectId) {
+    return this.tickets.countsForProject(projectId);
+  }
+
+  async getDetail(id, projectId) {
+    const detail = await this.tickets.findDetail(id, projectId);
     if (!detail) throw AppError.notFound('CAB ticket not found.');
     return detail;
   }
 
-  /** Create a CAB ticket. Only whitelisted fields are persisted (no mass-assign). */
-  create(data, actor) {
-    const ticket = this.tickets.insert({
+  /** Create a CAB ticket in the active project. Whitelisted fields only. */
+  async create(data, actor, projectId) {
+    const ticket = await this.tickets.insert({
+      project_id: projectId,
       requestor: data.requestor,
       requested_date: data.requestedDate,
       uat_proposed_date: data.uatProposedDate ?? null,
@@ -39,29 +47,29 @@ export class TicketService {
       ado_description: data.adoDescription ?? null,
       created_by: actor.id,
     });
-    this.audit.record({ actorId: actor.id, action: 'ticket.create', entity: 'cab_ticket', entityId: ticket.id });
-    realtime.emit(EVENTS.TICKET_CREATED, ticket);
+    await this.audit.record({ actorId: actor.id, action: 'ticket.create', entity: 'cab_ticket', entityId: ticket.id });
+    realtime.emit(EVENTS.TICKET_CREATED, { ...ticket, project_id: projectId });
     return ticket;
   }
 
-  /** Update editable fields of a ticket. */
-  update(id, data, actor) {
-    if (!this.tickets.findById(id)) throw AppError.notFound('CAB ticket not found.');
+  /** Update editable fields of a ticket within the active project. */
+  async update(id, data, actor, projectId) {
+    if (!await this.tickets.findInProject(id, projectId)) throw AppError.notFound('CAB ticket not found.');
     const patch = this.#whitelist(data);
     patch.updated_at = new Date().toISOString();
-    const ticket = this.tickets.update(id, patch);
-    this.audit.record({ actorId: actor.id, action: 'ticket.update', entity: 'cab_ticket', entityId: id, detail: patch });
-    realtime.emit(EVENTS.TICKET_UPDATED, ticket);
+    const ticket = await this.tickets.update(id, patch);
+    await this.audit.record({ actorId: actor.id, action: 'ticket.update', entity: 'cab_ticket', entityId: id, detail: patch });
+    realtime.emit(EVENTS.TICKET_UPDATED, { ...ticket, project_id: projectId });
     return ticket;
   }
 
   /** Save Tab 2 (review/compliance details) and move the ticket to in_review. */
-  saveReview(id, data, actor) {
-    if (!this.tickets.findById(id)) throw AppError.notFound('CAB ticket not found.');
-    const review = this.reviews.upsert(id, data, actor.id);
-    this.tickets.update(id, { status: 'in_review', updated_at: new Date().toISOString() });
-    this.audit.record({ actorId: actor.id, action: 'ticket.review', entity: 'cab_ticket', entityId: id });
-    realtime.emit(EVENTS.TICKET_UPDATED, this.tickets.findById(id));
+  async saveReview(id, data, actor, projectId) {
+    if (!await this.tickets.findInProject(id, projectId)) throw AppError.notFound('CAB ticket not found.');
+    const review = await this.reviews.upsert(id, data, actor.id);
+    await this.tickets.update(id, { status: 'in_review', updated_at: new Date().toISOString() });
+    await this.audit.record({ actorId: actor.id, action: 'ticket.review', entity: 'cab_ticket', entityId: id });
+    realtime.emit(EVENTS.TICKET_UPDATED, { id, project_id: projectId });
     return review;
   }
 

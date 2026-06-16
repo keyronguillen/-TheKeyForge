@@ -2,39 +2,35 @@ import { db } from '../db/database.js';
 
 /** Each ticket has exactly one approval record (created lazily on first decision). */
 export class ApprovalRepository {
-  findByTicket(ticketId) {
-    return db.get('SELECT * FROM approvals WHERE ticket_id = ?', [ticketId]);
+  async findByTicket(ticketId) {
+    return db.get('SELECT * FROM approvals WHERE ticket_id = $1', [ticketId]);
   }
 
   /**
-   * Record (or update) the decision for a ticket. Returns the approval row.
-   * decided_at is stamped server-side so the timestamp is trustworthy.
+   * Record (or update) the decision for a ticket via upsert. decided_at is
+   * stamped server-side so the timestamp is trustworthy. Returns the row.
    */
-  decide(ticketId, { decision, decidedBy, comment }) {
-    const existing = this.findByTicket(ticketId);
-    if (existing) {
-      db.run(
-        `UPDATE approvals
-            SET decision = ?, decided_by = ?, comment = ?,
-                decided_at = datetime('now'), notified = 0, integration_pushed = 0
-          WHERE ticket_id = ?`,
-        [decision, decidedBy, comment ?? null, ticketId],
-      );
-    } else {
-      db.run(
-        `INSERT INTO approvals (ticket_id, decision, decided_by, comment, decided_at)
-         VALUES (?, ?, ?, ?, datetime('now'))`,
-        [ticketId, decision, decidedBy, comment ?? null],
-      );
-    }
+  async decide(ticketId, { decision, decidedBy, comment }) {
+    await db.run(
+      `INSERT INTO approvals (ticket_id, decision, decided_by, comment, decided_at)
+       VALUES ($1, $2, $3, $4, now())
+       ON CONFLICT (ticket_id) DO UPDATE SET
+         decision = EXCLUDED.decision,
+         decided_by = EXCLUDED.decided_by,
+         comment = EXCLUDED.comment,
+         decided_at = now(),
+         notified = FALSE,
+         integration_pushed = FALSE`,
+      [ticketId, decision, decidedBy, comment ?? null],
+    );
     return this.findByTicket(ticketId);
   }
 
-  markNotified(ticketId) {
-    db.run('UPDATE approvals SET notified = 1 WHERE ticket_id = ?', [ticketId]);
+  async markNotified(ticketId) {
+    await db.run('UPDATE approvals SET notified = TRUE WHERE ticket_id = $1', [ticketId]);
   }
 
-  markIntegrationPushed(ticketId) {
-    db.run('UPDATE approvals SET integration_pushed = 1 WHERE ticket_id = ?', [ticketId]);
+  async markIntegrationPushed(ticketId) {
+    await db.run('UPDATE approvals SET integration_pushed = TRUE WHERE ticket_id = $1', [ticketId]);
   }
 }

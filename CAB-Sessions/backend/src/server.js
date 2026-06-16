@@ -7,25 +7,24 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createApp } from './app.js';
-import { config } from './config/index.js';
+import { config, isAiEnabled } from './config/index.js';
 import { db } from './db/database.js';
 import { runMigrations } from './db/migrate.js';
 import { realtime } from './realtime/socket.js';
 import { logger } from './utils/logger.js';
-import { isAiEnabled } from './config/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** Apply schema.sql + additive migrations so the app is runnable on any DB age. */
-function ensureSchema() {
+async function ensureSchema() {
   const schema = fs.readFileSync(path.join(__dirname, 'db', 'schema.sql'), 'utf8');
   db.connect();
-  db.exec(schema);
-  runMigrations();
+  await db.exec(schema);
+  await runMigrations();
 }
 
-function start() {
-  ensureSchema();
+async function start() {
+  await ensureSchema();
 
   const app = createApp();
   const server = http.createServer(app);
@@ -38,12 +37,12 @@ function start() {
   });
 
   // Graceful shutdown.
-  const shutdown = () => {
+  const shutdown = async () => {
     logger.info('Shutting down…');
-    server.close(() => { db.close(); process.exit(0); });
+    server.close(async () => { await db.close(); process.exit(0); });
   };
   process.on('SIGINT', shutdown);
   process.on('SIGTERM', shutdown);
 }
 
-start();
+start().catch((err) => { logger.error('Failed to start server', err); process.exit(1); });

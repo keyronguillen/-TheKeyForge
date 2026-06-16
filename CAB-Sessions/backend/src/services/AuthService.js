@@ -1,5 +1,5 @@
 /**
- * Authentication & account lifecycle.
+ * Authentication & account lifecycle (async / PostgreSQL).
  *
  * Login is a two-step flow when MFA is enabled:
  *   1. POST /auth/login   (email + password)  -> { mfaRequired: true, challenge }
@@ -11,6 +11,9 @@
  *   - short-lived JWTs signed with a server secret
  *   - a short-lived "challenge" token gates the MFA step so a valid password
  *     alone never yields a session.
+ *
+ * Note: with durable Postgres the mfa_enabled flag persists across logins, so a
+ * returning user goes straight to the verify step (no re-enrollment).
  */
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -33,43 +36,35 @@ export class AuthService {
   /** Register a new account. New self-registrations default to the Reader role. */
   async register({ fullName, email, password }) {
     const normalizedEmail = email.trim().toLowerCase();
-    if (this.users.findByEmail(normalizedEmail)) {
+    if (await this.users.findByEmail(normalizedEmail)) {
       throw AppError.conflict('An account with that email already exists.');
     }
-    const roleId = this.users.roleIdByName(ROLES.READER);
+    const roleId = await this.users.roleIdByName(ROLES.READER);
     const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
-    const user = this.users.insert({
+    const user = await this.users.insert({
       full_name: fullName.trim(),
       email: normalizedEmail,
       password_hash: passwordHash,
       role_id: roleId,
     });
-    this.audit.record({ actorId: user.id, action: 'auth.register', entity: 'user', entityId: user.id });
+    await this.audit.record({ actorId: user.id, action: 'auth.register', entity: 'user', entityId: user.id });
 
-    // Immediately start MFA enrollment so the account is protected from day one.
     return this.startMfaEnrollment(user.id);
   }
 
   /** Step 1 of login. Returns either a JWT (no MFA yet) or an MFA challenge. */
   async login({ email, password }) {
-    const user = this.users.findByEmail(email.trim().toLowerCase());
-    // Constant-ish path: always compare to avoid timing/enumeration leaks.
+    const user = await this.users.findByEmail(email.trim().toLowerCase());
     const ok = user && await bcrypt.compare(password, user.password_hash);
     if (!ok) throw AppError.unauthorized('Invalid email or password.');
 
     if (!user.mfa_enabled) {
-      // Account exists but hasn't finished MFA enrollment — send them back to it.
       const enrollment = await this.startMfaEnrollment(user.id);
       return { mfaEnrollmentRequired: true, ...enrollment };
     }
 
-    // Issue a short-lived challenge that only authorizes the MFA verify step.
-    const challenge = jwt.sign(
-      { sub: user.id, stage: 'mfa' },
-      config.jwt.secret,
-      { expiresIn: '5m' },
-    );
+    const challenge = jwt.sign({ sub: user.id, stage: 'mfa' }, config.jwt.secret, { expiresIn: '5m' });
     return { mfaRequired: true, challenge };
   }
 
@@ -83,22 +78,20 @@ export class AuthService {
     }
     if (payload.stage !== 'mfa') throw AppError.unauthorized('Invalid MFA challenge.');
 
-    const user = this.users.findByIdWithRole(payload.sub);
+    const user = await this.users.findByIdWithRole(payload.sub);
     if (!user || !this.mfa.verifyToken(user.mfa_secret, token)) {
       throw AppError.unauthorized('Invalid MFA code.');
     }
-    this.audit.record({ actorId: user.id, action: 'auth.login', entity: 'user', entityId: user.id });
+    await this.audit.record({ actorId: user.id, action: 'auth.login', entity: 'user', entityId: user.id });
     return this.#issueSession(user);
   }
 
   /** Generate a new TOTP secret + QR for a user (enrollment / re-enrollment). */
   async startMfaEnrollment(userId) {
-    const user = this.users.findByIdWithRole(userId);
+    const user = await this.users.findByIdWithRole(userId);
     if (!user) throw AppError.notFound('User not found.');
     const { base32, qrDataUrl } = await this.mfa.generateEnrollment(user.email);
-    // Persist the pending secret but keep mfa_enabled = 0 until confirmed.
-    this.users.update(userId, { mfa_secret: base32, mfa_enabled: 0 });
-    // An enrollment ticket the client returns alongside the first valid code.
+    await this.users.update(userId, { mfa_secret: base32, mfa_enabled: false });
     const enrollmentToken = jwt.sign({ sub: userId, stage: 'enroll' }, config.jwt.secret, { expiresIn: '15m' });
     return { mfaEnrollmentRequired: true, qrDataUrl, enrollmentToken };
   }
@@ -113,13 +106,13 @@ export class AuthService {
     }
     if (payload.stage !== 'enroll') throw AppError.unauthorized('Invalid enrollment session.');
 
-    const user = this.users.findByIdWithRole(payload.sub);
+    const user = await this.users.findByIdWithRole(payload.sub);
     if (!user || !this.mfa.verifyToken(user.mfa_secret, token)) {
       throw AppError.unauthorized('Invalid MFA code.');
     }
-    this.users.update(user.id, { mfa_enabled: 1 });
-    this.audit.record({ actorId: user.id, action: 'auth.mfa_enrolled', entity: 'user', entityId: user.id });
-    return this.#issueSession({ ...user, mfa_enabled: 1 });
+    await this.users.update(user.id, { mfa_enabled: true });
+    await this.audit.record({ actorId: user.id, action: 'auth.mfa_enrolled', entity: 'user', entityId: user.id });
+    return this.#issueSession({ ...user, mfa_enabled: true });
   }
 
   /** Build the signed session JWT + the safe user profile for the client. */
@@ -131,11 +124,7 @@ export class AuthService {
       role: user.role,
       capabilities: capabilitiesForRole(user.role),
     };
-    const token = jwt.sign(
-      { sub: user.id, role: user.role },
-      config.jwt.secret,
-      { expiresIn: config.jwt.expiresIn },
-    );
+    const token = jwt.sign({ sub: user.id, role: user.role }, config.jwt.secret, { expiresIn: config.jwt.expiresIn });
     return { token, user: profile };
   }
 }

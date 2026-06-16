@@ -5,11 +5,13 @@ import { ticketRoutes } from './ticketRoutes.js';
 import { approvalRoutes } from './approvalRoutes.js';
 import { userRoutes } from './userRoutes.js';
 import { aiRoutes } from './aiRoutes.js';
+import { projectRoutes } from './projectRoutes.js';
 
 export const apiRouter = Router();
 
 apiRouter.get('/health', (_req, res) => res.json({ status: 'ok', service: 'cab-sessions' }));
 apiRouter.use('/auth', authRoutes);
+apiRouter.use('/', projectRoutes); // /me/projects (auth, not project-scoped)
 apiRouter.use('/tickets', ticketRoutes);
 apiRouter.use('/tickets', approvalRoutes); // /tickets/:id/decision
 apiRouter.use('/admin', userRoutes);

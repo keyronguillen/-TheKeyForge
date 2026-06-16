@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { TicketController } from '../controllers/TicketController.js';
 import { authenticate } from '../middleware/auth.js';
+import { requireProject } from '../middleware/projectAccess.js';
 import { requireCapability } from '../middleware/rbac.js';
 import { validateBody } from '../middleware/validate.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -9,11 +10,12 @@ import { ticketCreateSchema, ticketUpdateSchema, reviewSchema } from '../validat
 
 export const ticketRoutes = Router();
 
-// All ticket routes require a valid session.
-ticketRoutes.use(authenticate);
+// Every ticket route needs a session AND an accessible active project.
+ticketRoutes.use(authenticate, requireProject);
 
-// Reading the board / detail: any authenticated role (VIEW capability).
+// Reading the board / counts / detail: any authenticated member (VIEW).
 ticketRoutes.get('/', requireCapability(CAP.VIEW), asyncHandler(TicketController.list));
+ticketRoutes.get('/counts', requireCapability(CAP.VIEW), asyncHandler(TicketController.counts));
 ticketRoutes.get('/:id', requireCapability(CAP.VIEW), asyncHandler(TicketController.detail));
 
 // Creating / editing tickets (Tab 1).

@@ -1,14 +1,14 @@
 /**
- * Tiny fetch wrapper. Attaches the JWT, parses JSON, and throws a normalized
- * error so calling code can show `err.message`. One place to change transport
- * concerns (base URL, auth header, error shape) — DRY.
+ * Tiny fetch wrapper. Attaches the JWT + active project, parses JSON, and throws
+ * a normalized error so calling code can show `err.message`. One place to change
+ * transport concerns (base URL, auth header, tenant header, error shape) — DRY.
  */
 const TOKEN_KEY = 'cab.token';
+const PROJECT_KEY = 'cab.projectId';
 
 // Base URL of the backend API.
 //   - Local dev: empty string → calls "/api/..." and Vite proxies to :4000.
-//   - Production (Vercel): set VITE_API_URL to the Render backend URL so the
-//     SPA calls the API directly (no proxy exists in production).
+//   - Production (Vercel): VITE_API_URL points at the Render backend.
 export const API_BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
 
 export const tokenStore = {
@@ -17,10 +17,22 @@ export const tokenStore = {
   clear: () => localStorage.removeItem(TOKEN_KEY),
 };
 
+/** Active project (tenant) — sent as X-Project-Id on every scoped request. */
+export const projectStore = {
+  get: () => {
+    const v = localStorage.getItem(PROJECT_KEY);
+    return v ? Number(v) : null;
+  },
+  set: (id) => localStorage.setItem(PROJECT_KEY, String(id)),
+  clear: () => localStorage.removeItem(PROJECT_KEY),
+};
+
 async function request(method, path, body) {
   const headers = { 'Content-Type': 'application/json' };
   const token = tokenStore.get();
   if (token) headers.Authorization = `Bearer ${token}`;
+  const projectId = projectStore.get();
+  if (projectId) headers['X-Project-Id'] = String(projectId);
 
   const res = await fetch(`${API_BASE}/api${path}`, {
     method,

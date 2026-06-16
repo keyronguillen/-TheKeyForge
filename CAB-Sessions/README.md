@@ -13,11 +13,26 @@ workflow, with role-based access, MFA, and live (real-time) updates during the m
 
 | Layer        | Technology                                              |
 |--------------|---------------------------------------------------------|
-| Database     | SQLite (via Node's built-in `node:sqlite`) — schema is portable to Azure SQL / SQL Server |
+| Database     | **PostgreSQL** (async, via `pg`) — durable; local via Docker, prod via Render Postgres |
 | Real-time    | Socket.IO                                                |
 | API          | Node.js + Express (OOP: controllers → services → repositories) |
 | Frontend     | React + Vite (responsive PWA — works on **Web + Mobile**) |
 | Auth / MFA   | Local Login/Register + TOTP MFA (Google Authenticator) + JWT |
+| Tenancy      | Companies → Projects → memberships; data isolated per project (server-enforced) |
+
+## Multi-tenant navigation (Section 5)
+
+Companies own **projects**; a user can belong to several projects but works in one at a
+time — **projects are never merged**. After login the user picks a project, then a left
+side menu drives four views:
+
+1. **Overview** — counts + lists of the buckets below.
+2. **To present** — the working board (table + Review + Approval) for undecided tickets.
+3. **Approved** — tickets approved in step 2.
+4. **Declined / To review** — tickets rejected or sent back in step 2.
+
+Tickets move between buckets automatically based on their decision. Isolation is enforced
+server-side (every query is scoped by `project_id` + membership), not just hidden in the UI.
 
 ## The 3 CAB tabs (Section 2)
 
@@ -55,11 +70,14 @@ To enable: set `ANTHROPIC_API_KEY` (and optionally `AI_MODEL`) in the backend en
 ### 1. Backend
 ```bash
 cd backend
+docker compose up -d        # start local Postgres (matches Render's engine)
 npm install
-copy .env.example .env      # then edit secrets
-npm run seed                # create + seed the SQLite DB
+copy .env.example .env      # then edit secrets (DATABASE_URL is preset for Docker)
+npm run seed                # create schema + seed companies/projects/users/tickets
 npm run dev                 # starts API + Socket.IO on http://localhost:4000
 ```
+> On **Render**: create a free **PostgreSQL** instance, link it to the web service (Render
+> injects `DATABASE_URL`), keep the build command `npm install && npm run seed`.
 
 ### 2. Frontend
 ```bash
@@ -69,14 +87,16 @@ npm run dev                 # starts the UI on http://localhost:5173
 ```
 
 ### Demo accounts (created by the seed)
-| Email                  | Password      | Role       |
-|------------------------|---------------|------------|
-| admin@cab.local        | Admin@12345   | Admin      |
-| approver@cab.local     | Approve@12345 | Approver   |
-| compliance@cab.local   | Comply@12345  | Compliance |
-| reader@cab.local       | Reader@12345  | Reader     |
+| Email                  | Password      | Role       | Sees                  |
+|------------------------|---------------|------------|-----------------------|
+| admin@cab.local        | Admin@12345   | Admin      | All companies         |
+| approver@cab.local     | Approve@12345 | Approver   | Company1 + Company2    |
+| compliance@cab.local   | Comply@12345  | Compliance | Company2              |
+| reviewer@cab.local     | Review@12345  | Reviewer   | Company1              |
+| reader@cab.local       | Reader@12345  | Reader     | Company3              |
 
 > On first login each account enrolls MFA by scanning the QR code with Google Authenticator.
+> The approver belongs to two projects (demonstrates "one user, multiple projects"); Admin sees all.
 
 ## Security & GDPR notes
 - Passwords hashed with bcrypt; MFA secrets stored separately; JWT short-lived.

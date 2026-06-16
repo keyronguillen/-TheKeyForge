@@ -1,80 +1,93 @@
 /**
- * Database access layer.
+ * Database access layer (PostgreSQL via node-postgres).
  *
- * Uses Node's built-in `node:sqlite` (no native compilation needed). The class
- * wraps the raw driver so the rest of the app depends on a small, stable surface
- * — if we later move to Azure SQL we only re-implement this one class.
+ * The class wraps a connection Pool so the rest of the app depends on a small,
+ * stable surface (get/all/run/tx). All methods are async. SQL uses Postgres
+ * positional params ($1, $2, …) and RETURNING for inserts.
  */
-import { DatabaseSync } from 'node:sqlite';
-import fs from 'node:fs';
-import path from 'node:path';
+import pg from 'pg';
 import { config } from '../config/index.js';
 import { logger } from '../utils/logger.js';
 
+const { Pool } = pg;
+
 class Database {
-  /** @type {DatabaseSync|null} */
-  #db = null;
+  /** @type {import('pg').Pool|null} */
+  #pool = null;
 
-  /** Open the connection, ensuring the parent folder exists. */
+  /** Open the pool (idempotent). */
   connect() {
-    if (this.#db) return this.#db;
-
-    const dir = path.dirname(config.db.file);
-    fs.mkdirSync(dir, { recursive: true });
-
-    this.#db = new DatabaseSync(config.db.file);
-    this.#db.exec('PRAGMA foreign_keys = ON;');
-    logger.info(`SQLite connected at ${config.db.file}`);
-    return this.#db;
+    if (this.#pool) return this.#pool;
+    this.#pool = new Pool({
+      connectionString: config.db.url,
+      ssl: config.db.ssl ? { rejectUnauthorized: false } : undefined,
+      max: 10,
+    });
+    this.#pool.on('error', (err) => logger.error('Postgres pool error', err));
+    logger.info('Postgres pool created');
+    return this.#pool;
   }
 
-  /** Raw handle (lazily connects). */
-  get handle() {
-    return this.#db ?? this.connect();
+  get pool() {
+    return this.#pool ?? this.connect();
   }
 
-  /** Run a schema/DDL script. */
-  exec(sql) {
-    return this.handle.exec(sql);
+  /** Test-only: inject a pre-built pool (e.g. pg-mem) instead of a real connection. */
+  _setPoolForTests(pool) {
+    this.#pool = pool;
   }
 
-  /** Execute a write (INSERT/UPDATE/DELETE) with bound params. */
-  run(sql, params = []) {
-    return this.handle.prepare(sql).run(...params);
+  /** Run raw SQL (DDL or multiple statements). */
+  async exec(sql) {
+    return this.pool.query(sql);
   }
 
-  /** Fetch a single row (or undefined). */
-  get(sql, params = []) {
-    return this.handle.prepare(sql).get(...params);
+  /** Execute a statement; returns the pg result ({ rows, rowCount }). */
+  async run(sql, params = []) {
+    return this.pool.query(sql, params);
+  }
+
+  /** Fetch a single row (or null). */
+  async get(sql, params = []) {
+    const { rows } = await this.pool.query(sql, params);
+    return rows[0] ?? null;
   }
 
   /** Fetch all matching rows. */
-  all(sql, params = []) {
-    return this.handle.prepare(sql).all(...params);
+  async all(sql, params = []) {
+    const { rows } = await this.pool.query(sql, params);
+    return rows;
   }
 
   /**
-   * Run `fn` inside a transaction. Commits on success, rolls back on throw.
-   * Keeps multi-table writes (e.g. ticket + review + approval) atomic.
+   * Run `fn(client)` inside a transaction on a dedicated client. Commits on
+   * success, rolls back on throw. `fn` receives a small client with the same
+   * get/all/run helpers so multi-table writes stay atomic.
    */
-  transaction(fn) {
-    const db = this.handle;
-    db.exec('BEGIN');
+  async tx(fn) {
+    const client = await this.pool.connect();
+    const wrapped = {
+      run: (sql, params = []) => client.query(sql, params),
+      get: async (sql, params = []) => (await client.query(sql, params)).rows[0] ?? null,
+      all: async (sql, params = []) => (await client.query(sql, params)).rows,
+    };
     try {
-      const result = fn();
-      db.exec('COMMIT');
+      await client.query('BEGIN');
+      const result = await fn(wrapped);
+      await client.query('COMMIT');
       return result;
     } catch (err) {
-      db.exec('ROLLBACK');
+      await client.query('ROLLBACK');
       throw err;
+    } finally {
+      client.release();
     }
   }
 
-  close() {
-    this.#db?.close();
-    this.#db = null;
+  async close() {
+    await this.#pool?.end();
+    this.#pool = null;
   }
 }
 
-// Single shared instance (module singleton).
 export const db = new Database();

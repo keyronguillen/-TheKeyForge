@@ -1,6 +1,6 @@
 /**
  * Auth HTTP controller. Thin layer: parse the (already-validated) request,
- * call AuthService, shape the response. No business logic lives here.
+ * call AuthService, shape the response. No business logic here.
  */
 import { AuthService } from '../services/AuthService.js';
 
@@ -8,26 +8,22 @@ const auth = new AuthService();
 
 export class AuthController {
   static async register(req, res) {
-    const result = await auth.register(req.body);
-    res.status(201).json(result);
+    res.status(201).json(await auth.register(req.body));
   }
 
   static async login(req, res) {
-    const result = await auth.login(req.body);
-    res.json(result);
+    res.json(await auth.login(req.body));
   }
 
   static async verifyMfa(req, res) {
-    const result = await auth.verifyMfa(req.body);
-    res.json(result);
+    res.json(await auth.verifyMfa(req.body));
   }
 
   static async confirmEnrollment(req, res) {
-    const result = await auth.confirmMfaEnrollment(req.body);
-    res.json(result);
+    res.json(await auth.confirmMfaEnrollment(req.body));
   }
 
-  /** Return the current session's profile (used by the SPA on load). */
+  /** Current session profile (used by the SPA on load). */
   static async me(req, res) {
     res.json({ user: req.user });
   }

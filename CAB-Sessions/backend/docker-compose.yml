@@ -1,0 +1,17 @@
+# Local Postgres for development — matches the engine used on Render.
+#   docker compose up -d
+#   then: DATABASE_URL=postgres://cab:cab@localhost:5432/cab npm run seed && npm run dev
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: cab
+      POSTGRES_PASSWORD: cab
+      POSTGRES_DB: cab
+    ports:
+      - "5432:5432"
+    volumes:
+      - cab_pgdata:/var/lib/postgresql/data
+
+volumes:
+  cab_pgdata:

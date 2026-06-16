@@ -6,12 +6,10 @@
  *   - push the decision to ServiceNow & ADO (IntegrationService, stubbed)
  *   - emit a real-time event so the board updates live
  *
- * Orchestration lives here; each side-effect is delegated to its own service
- * (single-responsibility) and the whole thing is audited.
+ * Scoped to the caller's active project (tenant isolation).
  */
 import { ApprovalRepository } from '../repositories/ApprovalRepository.js';
 import { TicketRepository } from '../repositories/TicketRepository.js';
-import { UserRepository } from '../repositories/UserRepository.js';
 import { AuditRepository } from '../repositories/AuditRepository.js';
 import { NotificationService } from './NotificationService.js';
 import { IntegrationService } from './IntegrationService.js';
@@ -23,7 +21,6 @@ export class ApprovalService {
   constructor() {
     this.approvals = new ApprovalRepository();
     this.tickets = new TicketRepository();
-    this.users = new UserRepository();
     this.audit = new AuditRepository();
     this.notifier = new NotificationService();
     this.integration = new IntegrationService();
@@ -34,29 +31,28 @@ export class ApprovalService {
    * @param {number} ticketId
    * @param {{decision:string, comment?:string, notify?:boolean, pushIntegration?:boolean}} input
    * @param {{id:number, fullName:string}} actor
+   * @param {number} projectId  the caller's active project (isolation guard)
    */
-  async decide(ticketId, input, actor) {
-    const ticket = this.tickets.findById(ticketId);
+  async decide(ticketId, input, actor, projectId) {
+    const ticket = await this.tickets.findInProject(ticketId, projectId);
     if (!ticket) throw AppError.notFound('CAB ticket not found.');
     if (!DECISION_VALUES.includes(input.decision)) {
       throw AppError.badRequest(`Invalid decision "${input.decision}".`);
     }
 
-    const approval = this.approvals.decide(ticketId, {
+    const approval = await this.approvals.decide(ticketId, {
       decision: input.decision,
       decidedBy: actor.id,
       comment: input.comment,
     });
-    // Lock the ticket to "decided" once a terminal decision is taken.
     if (input.decision === DECISION.APPROVED || input.decision === DECISION.REJECTED) {
-      this.tickets.update(ticketId, { status: 'decided' });
+      await this.tickets.update(ticketId, { status: 'decided' });
     }
-    this.audit.record({
+    await this.audit.record({
       actorId: actor.id, action: 'approval.decide', entity: 'cab_ticket', entityId: ticketId,
       detail: { decision: input.decision, comment: input.comment ?? null },
     });
 
-    // ── Side-effects (best-effort; failures are reported but don't lose the decision) ──
     const result = { approval, notification: null, integration: null };
 
     if (input.notify !== false) {
@@ -70,14 +66,14 @@ export class ApprovalService {
         decidedBy: actor.fullName,
         comment: input.comment,
       });
-      if (sent) this.approvals.markNotified(ticketId);
+      if (sent) await this.approvals.markNotified(ticketId);
       result.notification = { sent, to: recipient };
     }
 
     if (input.pushIntegration) {
       result.integration = await this.integration.pushDecision(ticket, input.decision);
-      this.approvals.markIntegrationPushed(ticketId);
-      this.audit.record({
+      await this.approvals.markIntegrationPushed(ticketId);
+      await this.audit.record({
         actorId: actor.id, action: 'integration.push', entity: 'cab_ticket', entityId: ticketId,
         detail: result.integration,
       });
@@ -85,6 +81,7 @@ export class ApprovalService {
 
     realtime.emit(EVENTS.DECISION_MADE, {
       ticketId,
+      project_id: projectId,
       decision: input.decision,
       decidedAt: approval.decided_at,
       decidedBy: actor.fullName,

@@ -8,15 +8,15 @@ import { TicketForm } from './TicketForm.jsx';
 
 const fmt = (d) => (d ? String(d).slice(0, 10) : '—');
 
-export function TicketTable({ tickets, selectedId, onSelect, onCreated }) {
+export function TicketTable({ tickets, selectedId, onSelect, onCreated, title = 'CAB tickets', allowCreate = true }) {
   const { can } = useAuth();
   const [showForm, setShowForm] = useState(false);
 
   return (
     <div className="stack">
       <div className="between">
-        <h2 style={{ margin: 0 }}>CAB tickets</h2>
-        {can(CAP.MANAGE_TICKETS) && (
+        <h2 style={{ margin: 0 }}>{title}</h2>
+        {allowCreate && can(CAP.MANAGE_TICKETS) && (
           <button onClick={() => setShowForm((s) => !s)}>
             {showForm ? 'Close' : '+ New CAB ticket'}
           </button>

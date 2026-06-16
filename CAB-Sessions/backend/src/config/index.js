@@ -37,8 +37,12 @@ export const config = Object.freeze({
   },
 
   db: {
-    // Absolute path to the SQLite file.
-    file: path.resolve(BACKEND_ROOT, env('DB_FILE', './data/cab.sqlite')),
+    // Postgres connection string. Render injects DATABASE_URL when you link a
+    // Postgres instance. Locally, point it at the Docker Postgres (see
+    // docker-compose.yml) — e.g. postgres://cab:cab@localhost:5432/cab.
+    url: env('DATABASE_URL', 'postgres://cab:cab@localhost:5432/cab'),
+    // Render's managed Postgres requires TLS; local Docker does not.
+    ssl: env('DATABASE_SSL', '') === 'true' || /\brender\.com\b/.test(env('DATABASE_URL', '')),
   },
 
   mail: {

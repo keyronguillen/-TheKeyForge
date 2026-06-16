@@ -1,6 +1,6 @@
 /**
  * AI HTTP controller. Orchestrates AiService + persistence (review column +
- * ai_insights history) + audit logging. Thin: no prompt logic lives here.
+ * ai_insights history) + audit logging. Scoped to req.projectId.
  */
 import { AiService } from '../services/AiService.js';
 import { TicketService } from '../services/TicketService.js';
@@ -22,30 +22,30 @@ export class AiController {
   /** Draft the Tab-2 review fields (returned to the client to review & save). */
   static async draftReview(req, res) {
     const id = Number(req.params.id);
-    const ticket = tickets.getDetail(id);
+    const ticket = await tickets.getDetail(id, req.projectId);
     const { fields, model } = await ai.draftReview(ticket);
-    insights.record({ ticketId: id, kind: 'draft_review', content: JSON.stringify(fields), model, createdBy: req.user.id });
-    audit.record({ actorId: req.user.id, action: 'ai.draft_review', entity: 'cab_ticket', entityId: id });
+    await insights.record({ ticketId: id, projectId: req.projectId, kind: 'draft_review', content: JSON.stringify(fields), model, createdBy: req.user.id });
+    await audit.record({ actorId: req.user.id, action: 'ai.draft_review', entity: 'cab_ticket', entityId: id });
     res.json({ fields });
   }
 
   /** Generate reviewer feedback; persist it to the review column + history. */
   static async feedback(req, res) {
     const id = Number(req.params.id);
-    const detail = tickets.getDetail(id);
+    const detail = await tickets.getDetail(id, req.projectId);
     const { feedback, model } = await ai.generateFeedback(detail);
-    insights.saveFeedbackOnReview(id, feedback);
-    insights.record({ ticketId: id, kind: 'feedback', content: feedback, model, createdBy: req.user.id });
-    audit.record({ actorId: req.user.id, action: 'ai.feedback', entity: 'cab_ticket', entityId: id });
+    await insights.saveFeedbackOnReview(id, feedback);
+    await insights.record({ ticketId: id, projectId: req.projectId, kind: 'feedback', content: feedback, model, createdBy: req.user.id });
+    await audit.record({ actorId: req.user.id, action: 'ai.feedback', entity: 'cab_ticket', entityId: id });
     res.json({ feedback });
   }
 
-  /** Generate a post-CAB report across all tickets on the board. */
+  /** Generate a post-CAB report across the active project's tickets. */
   static async report(req, res) {
-    const all = tickets.list();
+    const all = await tickets.list(req.projectId);
     const { report, model } = await ai.generateCabReport(all);
-    insights.record({ ticketId: null, kind: 'cab_report', content: report, model, createdBy: req.user.id });
-    audit.record({ actorId: req.user.id, action: 'ai.cab_report', entity: 'cab', entityId: null });
+    await insights.record({ ticketId: null, projectId: req.projectId, kind: 'cab_report', content: report, model, createdBy: req.user.id });
+    await audit.record({ actorId: req.user.id, action: 'ai.cab_report', entity: 'cab', entityId: null });
     res.json({ report });
   }
 }
