@@ -58,9 +58,21 @@ export const config = Object.freeze({
     // User chose Haiku 4.5 for the POC (fast + low cost). Override via AI_MODEL.
     model: env('AI_MODEL', 'claude-haiku-4-5'),
   },
+
+  // Azure DevOps (Azure Boards) read-only integration. PAT lives only on the
+  // backend. If any of the three are missing, the ADO feature self-disables.
+  ado: {
+    orgUrl: env('ADO_ORG_URL', '').replace(/\/+$/, ''),  // e.g. https://proyectoskeyron.visualstudio.com
+    project: env('ADO_PROJECT', ''),                      // e.g. CAB
+    pat: env('ADO_PAT', ''),                              // Personal Access Token (Work Items: Read)
+    types: env('ADO_TYPES', 'Epic,Feature,Task').split(',').map((s) => s.trim()).filter(Boolean),
+  },
 });
 
 export const isProd = config.env === 'production';
+
+/** True when Azure DevOps is fully configured (org + project + PAT). */
+export const isAdoEnabled = Boolean(config.ado.orgUrl && config.ado.project && config.ado.pat);
 
 /** True when an Anthropic API key is configured (AI features available). */
 export const isAiEnabled = Boolean(config.ai.apiKey);

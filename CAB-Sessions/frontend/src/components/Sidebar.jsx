@@ -12,10 +12,14 @@ const ITEMS = [
   { id: 'declined', label: 'Declined / Review', icon: '✗', countKey: 'declined' },
 ];
 
-export function Sidebar({ active, onSelect, counts }) {
+export function Sidebar({ active, onSelect, counts, adoEnabled }) {
+  // Azure Boards is shown only when the backend has an ADO connection.
+  const items = adoEnabled
+    ? [...ITEMS, { id: 'ado', label: 'Azure Boards', icon: '⟴' }]
+    : ITEMS;
   return (
     <nav className="sidebar">
-      {ITEMS.map((it) => (
+      {items.map((it) => (
         <button
           key={it.id}
           className={`side-item ${active === it.id ? 'active' : ''}`}

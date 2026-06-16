@@ -66,3 +66,10 @@ export const ai = {
   feedback: (ticketId) => request('POST', `/tickets/${ticketId}/ai/feedback`),
   report: () => request('POST', '/ai/cab-report'),
 };
+
+/** Azure DevOps (Azure Boards) calls, server-side via PAT. */
+export const ado = {
+  status: () => request('GET', '/ado/status'),
+  workItems: () => request('GET', '/ado/workitems'),
+  import: (id) => request('POST', `/ado/import/${id}`),
+};

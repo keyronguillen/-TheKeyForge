@@ -6,6 +6,7 @@ import { approvalRoutes } from './approvalRoutes.js';
 import { userRoutes } from './userRoutes.js';
 import { aiRoutes } from './aiRoutes.js';
 import { projectRoutes } from './projectRoutes.js';
+import { adoRoutes } from './adoRoutes.js';
 
 export const apiRouter = Router();
 
@@ -16,3 +17,4 @@ apiRouter.use('/tickets', ticketRoutes);
 apiRouter.use('/tickets', approvalRoutes); // /tickets/:id/decision
 apiRouter.use('/admin', userRoutes);
 apiRouter.use('/', aiRoutes); // /ai/status, /tickets/:id/ai/*, /ai/cab-report
+apiRouter.use('/', adoRoutes); // /ado/status, /ado/workitems, /ado/import/:id

@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createApp } from './app.js';
-import { config, isAiEnabled } from './config/index.js';
+import { config, isAiEnabled, isAdoEnabled } from './config/index.js';
 import { db } from './db/database.js';
 import { runMigrations } from './db/migrate.js';
 import { realtime } from './realtime/socket.js';
@@ -34,6 +34,7 @@ async function start() {
     logger.info(`CAB-Sessions API listening on http://localhost:${config.port}`);
     logger.info(`Allowed client origins: ${config.clientOrigins.join(', ')}`);
     logger.info(`AI assistant: ${isAiEnabled ? `enabled (${config.ai.model})` : 'disabled (set ANTHROPIC_API_KEY)'}`);
+    logger.info(`Azure DevOps: ${isAdoEnabled ? `enabled (${config.ado.project})` : 'disabled (set ADO_ORG_URL/ADO_PROJECT/ADO_PAT)'}`);
   });
 
   // Graceful shutdown.
