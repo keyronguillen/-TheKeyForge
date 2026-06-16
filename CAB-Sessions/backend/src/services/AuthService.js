@@ -22,6 +22,7 @@ import { AppError } from '../utils/AppError.js';
 import { UserRepository } from '../repositories/UserRepository.js';
 import { AuditRepository } from '../repositories/AuditRepository.js';
 import { MfaService } from './MfaService.js';
+import { EntraService } from './EntraService.js';
 import { ROLES, capabilitiesForRole } from '../constants/roles.js';
 
 const BCRYPT_ROUNDS = 12;
@@ -31,6 +32,34 @@ export class AuthService {
     this.users = new UserRepository();
     this.audit = new AuditRepository();
     this.mfa = new MfaService();
+    this.entra = new EntraService();
+  }
+
+  /**
+   * Microsoft Entra SSO. Verifies the ID token, then finds or JIT-creates the
+   * local user (matched by email) and issues our normal session. MFA was already
+   * enforced by Microsoft during sign-in, so no local TOTP step is needed.
+   * Emails listed in ENTRA_ADMIN_EMAILS are provisioned as Admin.
+   */
+  async loginWithEntra({ idToken }) {
+    const identity = await this.entra.verifyIdToken(idToken);
+
+    let user = await this.users.findByEmail(identity.email);
+    if (!user) {
+      const isAdmin = config.entra.adminEmails.includes(identity.email);
+      const roleId = await this.users.roleIdByName(isAdmin ? ROLES.ADMIN : ROLES.READER);
+      const created = await this.users.insert({
+        full_name: identity.name,
+        email: identity.email,
+        password_hash: 'entra-sso', // unusable for local login (bcrypt never matches)
+        role_id: roleId,
+        mfa_enabled: true,          // MFA handled by Microsoft
+      });
+      user = await this.users.findByIdWithRole(created.id);
+    }
+
+    await this.audit.record({ actorId: user.id, action: 'auth.login_entra', entity: 'user', entityId: user.id });
+    return this.#issueSession(user);
   }
 
   /** Register a new account. New self-registrations default to the Reader role. */

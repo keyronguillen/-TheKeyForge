@@ -67,12 +67,23 @@ export const config = Object.freeze({
     pat: env('ADO_PAT', ''),                              // Personal Access Token (Work Items: Read)
     types: env('ADO_TYPES', 'Epic,Feature,Task').split(',').map((s) => s.trim()).filter(Boolean),
   },
+
+  // Microsoft Entra ID (Azure AD) SSO. tenantId + clientId are public identifiers
+  // (no secret needed for SPA/PKCE). adminEmails get the Admin role on first SSO.
+  entra: {
+    tenantId: env('ENTRA_TENANT_ID', ''),
+    clientId: env('ENTRA_CLIENT_ID', ''),
+    adminEmails: env('ENTRA_ADMIN_EMAILS', '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean),
+  },
 });
 
 export const isProd = config.env === 'production';
 
 /** True when Azure DevOps is fully configured (org + project + PAT). */
 export const isAdoEnabled = Boolean(config.ado.orgUrl && config.ado.project && config.ado.pat);
+
+/** True when Entra ID SSO is configured (tenant + client id). */
+export const isEntraEnabled = Boolean(config.entra.tenantId && config.entra.clientId);
 
 /** True when an Anthropic API key is configured (AI features available). */
 export const isAiEnabled = Boolean(config.ai.apiKey);

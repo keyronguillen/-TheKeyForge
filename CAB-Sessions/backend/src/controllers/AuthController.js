@@ -3,6 +3,7 @@
  * call AuthService, shape the response. No business logic here.
  */
 import { AuthService } from '../services/AuthService.js';
+import { isEntraEnabled, config } from '../config/index.js';
 
 const auth = new AuthService();
 
@@ -13,6 +14,20 @@ export class AuthController {
 
   static async login(req, res) {
     res.json(await auth.login(req.body));
+  }
+
+  /** Public config the SPA needs to show/configure the Microsoft sign-in button. */
+  static async authConfig(_req, res) {
+    res.json({
+      entra: isEntraEnabled
+        ? { enabled: true, tenantId: config.entra.tenantId, clientId: config.entra.clientId }
+        : { enabled: false },
+    });
+  }
+
+  /** Microsoft SSO: exchange a verified Entra ID token for our session. */
+  static async entraLogin(req, res) {
+    res.json(await auth.loginWithEntra(req.body));
   }
 
   static async verifyMfa(req, res) {

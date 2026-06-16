@@ -59,6 +59,16 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); b
 .brand .logo { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg,#3b82f6,#22c55e); }
 .error { color: #fecaca; background: rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.4); padding:.6rem .75rem; border-radius:8px; margin:.75rem 0; font-size:.9rem; }
 .muted-link { background:none; color: var(--primary); padding:0; font-weight:500; }
+.divider { display:flex; align-items:center; gap:.75rem; margin:1rem 0 .75rem; color: var(--muted); font-size:.8rem; }
+.divider::before, .divider::after { content:''; flex:1; height:1px; background: var(--border); }
+.ms-btn { display:flex; align-items:center; justify-content:center; gap:.6rem; width:100%; background:#fff; color:#1f2937; border:1px solid #d1d5db; font-weight:600; }
+.ms-btn:hover { background:#f3f4f6; }
+.ms-logo { width:18px; height:18px; flex:none;
+  background:
+    linear-gradient(#f25022,#f25022) 0 0/8px 8px no-repeat,
+    linear-gradient(#7fba00,#7fba00) 10px 0/8px 8px no-repeat,
+    linear-gradient(#00a4ef,#00a4ef) 0 10px/8px 8px no-repeat,
+    linear-gradient(#ffb900,#ffb900) 10px 10px/8px 8px no-repeat; }
 
 /* ── App shell ── */
 .app { display: flex; flex-direction: column; min-height: 100%; }

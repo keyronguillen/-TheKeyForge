@@ -2,12 +2,13 @@
  * Login page — drives the multi-stage auth flow:
  *   credentials → (MFA verify | MFA enrollment) → session established.
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { MfaVerify } from '../components/MfaVerify.jsx';
 import { MfaEnroll } from '../components/MfaEnroll.jsx';
+import { signInWithMicrosoft } from '../auth/msal.js';
 
 const STAGE = { CREDENTIALS: 'credentials', VERIFY: 'verify', ENROLL: 'enroll' };
 
@@ -18,8 +19,28 @@ export default function LoginPage() {
   const [mfa, setMfa] = useState({ challenge: null, qrDataUrl: null, enrollmentToken: null });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [entra, setEntra] = useState(null);   // { enabled, tenantId, clientId }
 
   const update = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  // Discover whether Microsoft sign-in is configured on the backend.
+  useEffect(() => {
+    api.get('/auth/config').then((c) => setEntra(c.entra)).catch(() => setEntra({ enabled: false }));
+  }, []);
+
+  const signInMicrosoft = async () => {
+    setError(''); setBusy(true);
+    try {
+      const idToken = await signInWithMicrosoft({ tenantId: entra.tenantId, clientId: entra.clientId });
+      const session = await api.post('/auth/entra', { idToken });
+      establishSession(session);
+    } catch (err) {
+      // Ignore the user simply closing the popup.
+      if (err?.errorCode !== 'user_cancelled') setError(err.message || 'Microsoft sign-in failed.');
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const submitCredentials = async (e) => {
     e.preventDefault();
@@ -61,6 +82,20 @@ export default function LoginPage() {
                 {busy ? 'Signing in…' : 'Sign in'}
               </button>
             </form>
+
+            {entra?.enabled && (
+              <>
+                <div className="divider"><span>or</span></div>
+                <button className="ms-btn" disabled={busy} onClick={signInMicrosoft}>
+                  <span className="ms-logo" aria-hidden="true" />
+                  Sign in with Microsoft
+                </button>
+                <small style={{ display: 'block', marginTop: '.4rem', textAlign: 'center' }}>
+                  Uses your organization account + Microsoft MFA.
+                </small>
+              </>
+            )}
+
             <p className="center" style={{ marginTop: '1rem' }}>
               <small>No account? </small>
               <Link to="/register" className="muted-link">Create one</Link>

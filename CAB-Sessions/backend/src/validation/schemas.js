@@ -22,6 +22,11 @@ export const loginSchema = z.object({
   password: z.string().min(1).max(128),
 });
 
+export const entraSchema = z.object({
+  // Entra ID tokens are JWTs; allow room for group/role claims.
+  idToken: z.string().min(20).max(16000),
+});
+
 export const mfaVerifySchema = z.object({
   challenge: z.string().min(10),
   token: z.string().regex(/^\d{6}$/, 'Enter the 6-digit code'),
