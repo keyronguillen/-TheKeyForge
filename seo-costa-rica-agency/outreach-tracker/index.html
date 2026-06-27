@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rastreador de Prospectos | SEO Costa Rica</title>
+  <meta name="description" content="Herramienta interna para registrar y dar seguimiento a prospectos de clínicas y pymes en Costa Rica con sus puntajes SEO." />
+  <style>
+    :root{
+      --bg:#0f172a; --panel:#1e293b; --panel-2:#273449; --line:#334155;
+      --txt:#e2e8f0; --muted:#94a3b8; --brand:#16a34a; --brand-2:#22c55e;
+      --warn:#f59e0b; --bad:#ef4444; --good:#22c55e; --accent:#38bdf8;
+      --radius:12px; font-synthesis:none;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--txt);
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.45}
+    .wrap{max-width:1200px;margin:0 auto;padding:20px 16px 64px}
+    header.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
+    h1{font-size:20px;margin:0;display:flex;align-items:center;gap:8px}
+    h1 .dot{color:var(--brand-2)}
+    .sub{color:var(--muted);font-size:13px;margin-top:2px}
+    .btn{border:1px solid var(--line);background:var(--panel-2);color:var(--txt);
+      padding:8px 14px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600}
+    .btn:hover{border-color:var(--brand)}
+    .btn-primary{background:var(--brand);border-color:var(--brand);color:#04140a}
+    .btn-primary:hover{background:var(--brand-2)}
+    .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+    /* KPI cards */
+    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:18px 0}
+    .kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+    .kpi .num{font-size:26px;font-weight:800}
+    .kpi .lbl{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+
+    /* filters */
+    .filters{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 14px;align-items:center}
+    .filters select,.filters input{background:var(--panel);border:1px solid var(--line);color:var(--txt);
+      padding:8px 10px;border-radius:8px;font-size:14px}
+    .chip{padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);
+      cursor:pointer;font-size:13px}
+    .chip.active{background:var(--brand);color:#04140a;border-color:var(--brand);font-weight:700}
+
+    /* table */
+    .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius)}
+    table{width:100%;border-collapse:collapse;min-width:880px}
+    th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);font-size:13.5px;vertical-align:middle}
+    th{background:var(--panel-2);color:var(--muted);font-weight:600;position:sticky;top:0;cursor:pointer;white-space:nowrap}
+    th:hover{color:var(--txt)}
+    tbody tr:hover{background:var(--panel)}
+    .vtag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#1d4ed822;color:var(--accent);border:1px solid #1d4ed855}
+    .score{display:inline-flex;align-items:center;gap:6px;min-width:64px}
+    .bar{height:7px;width:54px;background:var(--panel-2);border-radius:4px;overflow:hidden}
+    .bar > i{display:block;height:100%;border-radius:4px}
+    .yes{color:var(--good);font-weight:700}.no{color:var(--bad);font-weight:700}
+    .status{font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:capitalize}
+    .st-nuevo{background:#33415588;color:#cbd5e1}
+    .st-contactado{background:#f59e0b22;color:var(--warn)}
+    .st-propuesta{background:#38bdf822;color:var(--accent)}
+    .st-cliente{background:#22c55e22;color:var(--good)}
+    .st-descartado{background:#ef444422;color:var(--bad)}
+    td.actions{white-space:nowrap}
+    .ic{cursor:pointer;background:none;border:none;color:var(--muted);font-size:15px;padding:2px 6px}
+    .ic:hover{color:var(--txt)}
+    a.wa{color:var(--good);text-decoration:none;font-weight:600}
+    a.wa:hover{text-decoration:underline}
+
+    /* modal */
+    .modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+    .modal.open{display:flex}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+      width:100%;max-width:560px;max-height:90vh;overflow:auto;padding:20px}
+    .card h2{margin:0 0 14px;font-size:17px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+    .field{margin-bottom:12px}
+    .field input,.field select{width:100%;background:var(--panel-2);border:1px solid var(--line);
+      color:var(--txt);padding:9px 10px;border-radius:8px;font-size:14px}
+    .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+    .empty{padding:40px;text-align:center;color:var(--muted)}
+    footer{margin-top:20px;color:var(--muted);font-size:12px;text-align:center}
+    @media(max-width:640px){ h1{font-size:17px} .grid2{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1><span class="dot">◗</span> Rastreador de Prospectos SEO</h1>
+      <div class="sub">Clínicas, dentistas y pymes en Costa Rica · 5 objetivos por vertical</div>
+    </div>
+    <div class="toolbar">
+      <button class="btn" id="importBtn">Importar CSV</button>
+      <button class="btn" id="exportBtn">Exportar CSV</button>
+      <button class="btn" id="resetBtn" title="Restaurar datos de ejemplo">Restaurar</button>
+      <button class="btn btn-primary" id="addBtn">+ Nuevo prospecto</button>
+      <input type="file" id="fileInput" accept=".csv" hidden />
+    </div>
+  </header>
+
+  <!-- KPIs -->
+  <section class="kpis" id="kpis"></section>
+
+  <!-- Filters -->
+  <div class="filters" id="verticalChips"></div>
+  <div class="filters">
+    <input type="search" id="search" placeholder="Buscar nombre, cantón, contacto…" style="flex:1;min-width:200px" />
+    <select id="statusFilter">
+      <option value="">Todos los estados</option>
+      <option value="nuevo">Nuevo</option>
+      <option value="contactado">Contactado</option>
+      <option value="propuesta">Propuesta</option>
+      <option value="cliente">Cliente</option>
+      <option value="descartado">Descartado</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="tablewrap">
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th data-sort="vertical">Vertical</th>
+          <th data-sort="business_name">Negocio</th>
+          <th data-sort="canton">Cantón</th>
+          <th data-sort="https">HTTPS</th>
+          <th data-sort="mobile_friendly">Móvil</th>
+          <th data-sort="page_speed">Velocidad</th>
+          <th data-sort="seo_score">SEO</th>
+          <th data-sort="contact_name">Contacto</th>
+          <th data-sort="status">Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <div class="empty" id="empty" hidden>Sin prospectos que coincidan con el filtro.</div>
+
+  <footer>
+    Datos guardados localmente en tu navegador (localStorage). Los contactos de ejemplo son ilustrativos —
+    reemplázalos con prospectos reales antes de hacer outreach.
+  </footer>
+</div>
+
+<!-- Edit / Add modal -->
+<div class="modal" id="modal">
+  <div class="card">
+    <h2 id="modalTitle">Nuevo prospecto</h2>
+    <div class="grid2">
+      <div class="field"><label>Vertical</label>
+        <select id="f_vertical"><option>Clinicas</option><option>Dentistas</option><option>Pymes</option></select></div>
+      <div class="field"><label>Nombre del negocio</label><input id="f_business_name" /></div>
+      <div class="field"><label>Cantón</label><input id="f_canton" /></div>
+      <div class="field"><label>Provincia</label><input id="f_province" /></div>
+      <div class="field"><label>Sitio web (URL o vacío)</label><input id="f_website" placeholder="https://… o vacío" /></div>
+      <div class="field"><label>Estado</label>
+        <select id="f_status">
+          <option value="nuevo">Nuevo</option><option value="contactado">Contactado</option>
+          <option value="propuesta">Propuesta</option><option value="cliente">Cliente</option>
+          <option value="descartado">Descartado</option>
+        </select></div>
+      <div class="field"><label>HTTPS</label><select id="f_https"><option value="no">No</option><option value="si">Sí</option></select></div>
+      <div class="field"><label>Responsive móvil</label><select id="f_mobile_friendly"><option value="no">No</option><option value="si">Sí</option></select></div>
+      <div class="field"><label>Velocidad (0–100)</label><input id="f_page_speed" type="number" min="0" max="100" /></div>
+      <div class="field"><label>Puntaje SEO (0–100)</label><input id="f_seo_score" type="number" min="0" max="100" /></div>
+      <div class="field"><label>Nombre de contacto</label><input id="f_contact_name" /></div>
+      <div class="field"><label>Teléfono</label><input id="f_phone" placeholder="2100-0000" /></div>
+      <div class="field"><label>WhatsApp</label><input id="f_whatsapp" placeholder="8700-0000" /></div>
+      <div class="field"><label>Email</label><input id="f_email" /></div>
+      <div class="field"><label>Instagram</label><input id="f_instagram" placeholder="@negocio" /></div>
+      <div class="field"><label>Próxima acción</label><input id="f_next_action" /></div>
+    </div>
+    <div class="field"><label>Notas</label><input id="f_notes" /></div>
+    <div class="modal-actions">
+      <button class="btn" id="cancelBtn">Cancelar</button>
+      <button class="btn btn-primary" id="saveBtn">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   Rastreador de Prospectos SEO — herramienta estática (sin build)
+   Persistencia: localStorage. Datos semilla = 15 prospectos
+   de ejemplo (5 por vertical). Import/Export CSV incluido.
+   ============================================================ */
+
+const STORE_KEY = 'cr_seo_outreach_v1';
+const FIELDS = ['vertical','business_name','canton','province','website','has_website',
+  'https','mobile_friendly','page_speed','seo_score','contact_name','phone','whatsapp',
+  'email','instagram','status','last_contact','next_action','notes'];
+
+/* --- Datos semilla (espejo de data/outreach-targets.csv) --- */
+const SEED = [
+  ['Clinicas','Clinica Dermatologica San Jose','San Jose','San Jose','http://dermasanjose.cr','si','no','no',38,22,'Dra. Marta Vargas','2100-0011','8700-0011','info@dermasanjose.cr','@dermasanjose','nuevo','','Enviar WhatsApp inicial','Sitio en HTTP; sin meta description'],
+  ['Clinicas','Clinica Estetica Escazu','Escazu','San Jose','https://esteticaescazu.com','si','si','no',41,34,'Lic. Carlos Mora','2100-0022','8700-0022','contacto@esteticaescazu.com','@esteticaescazu','nuevo','','Enviar WhatsApp inicial','No responsive; GBP sin optimizar'],
+  ['Clinicas','Centro Medico Heredia','Heredia','Heredia','','no','no','no',0,8,'Dr. Luis Jimenez','2100-0033','8700-0033','centromedicoheredia@gmail.com','@centromedicoheredia','nuevo','','Enviar WhatsApp inicial','Sin sitio web; solo Instagram'],
+  ['Clinicas','Clinica Salud Integral Alajuela','Alajuela','Alajuela','http://saludintegralalajuela.cr','si','no','no',29,18,'Dra. Ana Solano','2100-0044','8700-0044','info@saludintegralalajuela.cr','@saludintegralcr','nuevo','','Enviar WhatsApp inicial','HTTP; carga lenta; sin agenda online'],
+  ['Clinicas','Clinica del Bienestar Cartago','Cartago','Cartago','','no','no','no',0,5,'Lic. Roberto Quesada','2100-0055','8700-0055','bienestarcartago@gmail.com','@bienestarcartago','nuevo','','Enviar WhatsApp inicial','Sin web; reseñas dispersas'],
+  ['Dentistas','Dental Sonrisas Curridabat','Curridabat','San Jose','https://sonrisascurridabat.com','si','si','si',52,40,'Dr. Esteban Rojas','2100-0066','8700-0066','citas@sonrisascurridabat.com','@sonrisascurridabat','contactado','2026-06-20','Agendar llamada demo','Base decente; falta Schema y blog'],
+  ['Dentistas','Odontologia Moreno','Heredia','Heredia','http://odontologiamoreno.cr','si','no','no',33,21,'Dra. Sofia Moreno','2100-0077','8700-0077','info@odontologiamoreno.cr','@odontologiamoreno','nuevo','','Enviar WhatsApp inicial','HTTP; imagenes sin alt'],
+  ['Dentistas','Clinica Dental Alajuela Centro','Alajuela','Alajuela','','no','no','no',0,7,'Dr. Diego Castro','2100-0088','8700-0088','dentalalajuelacentro@gmail.com','@dentalalajuela','nuevo','','Enviar WhatsApp inicial','Sin web; alta competencia local'],
+  ['Dentistas','DentalCare Tres Rios','La Union','Cartago','https://dentalcaretresrios.com','si','si','no',44,31,'Lic. Karla Vega','2100-0099','8700-0099','hola@dentalcaretresrios.com','@dentalcaretresrios','nuevo','','Enviar WhatsApp inicial','No responsive; mala indexacion movil'],
+  ['Dentistas','Sonrisa Perfecta Santa Ana','Santa Ana','San Jose','http://sonrisaperfectasantaana.cr','si','no','no',36,24,'Dra. Paola Herrera','2100-0110','8700-0110','info@sonrisaperfectasantaana.cr','@sonrisaperfectacr','nuevo','','Enviar WhatsApp inicial','HTTP; sin keywords locales'],
+  ['Pymes','Veterinaria Patitas Felices','Desamparados','San Jose','','no','no','no',0,6,'Lic. Andres Ramirez','2100-0121','8700-0121','patitasfelices@gmail.com','@patitasfelicescr','nuevo','','Enviar WhatsApp inicial','Solo redes; sin web ni Maps'],
+  ['Pymes','Spa Relax Heredia','Heredia','Heredia','https://sparelaxheredia.com','si','si','no',47,29,'Lic. Natalia Campos','2100-0132','8700-0132','reservas@sparelaxheredia.com','@sparelaxheredia','contactado','2026-06-22','Enviar propuesta','No responsive; sin reservas online'],
+  ['Pymes','Gimnasio FitZone Alajuela','Alajuela','Alajuela','http://fitzonealajuela.cr','si','no','no',31,17,'Lic. Mario Brenes','2100-0143','8700-0143','info@fitzonealajuela.cr','@fitzonecr','nuevo','','Enviar WhatsApp inicial','HTTP; carga muy lenta'],
+  ['Pymes','Optica VisionPlus','San Jose','San Jose','','no','no','no',0,9,'Lic. Gabriela Soto','2100-0154','8700-0154','visionplus.cr@gmail.com','@visionpluscr','nuevo','','Enviar WhatsApp inicial','Sin web; compite con cadenas'],
+  ['Pymes','Fisioterapia Movimiento Cartago','Cartago','Cartago','https://fisiomovimientocartago.com','si','si','si',55,42,'Lic. Jose Pablo Arce','2100-0165','8700-0165','citas@fisiomovimientocartago.com','@fisiomovimientocr','nuevo','','Enviar WhatsApp inicial','Mejor de la lista; optimizar velocidad'],
+].map(r => Object.fromEntries(FIELDS.map((f,i)=>[f, r[i]])));
+
+/* --- Estado --- */
+let DATA = load();
+let activeVertical = '';
+let sortKey = 'seo_score', sortDir = 1;
+let editingIndex = null;
+
+function load(){
+  try{ const s = localStorage.getItem(STORE_KEY); if(s) return JSON.parse(s); }catch(e){}
+  return structuredClone(SEED);
+}
+function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(DATA)); }
+
+/* --- Helpers --- */
+const $ = id => document.getElementById(id);
+const scoreColor = v => v>=60 ? 'var(--good)' : v>=35 ? 'var(--warn)' : 'var(--bad)';
+const waLink = num => 'https://wa.me/506' + String(num||'').replace(/\D/g,'');
+const yesno = v => v==='si'
+  ? '<span class="yes">Sí</span>' : '<span class="no">No</span>';
+
+/* --- KPIs --- */
+function renderKpis(){
+  const rows = DATA;
+  const avg = arr => arr.length ? Math.round(arr.reduce((a,b)=>a+(+b||0),0)/arr.length) : 0;
+  const cards = [
+    ['Prospectos', rows.length],
+    ['SEO promedio', avg(rows.map(r=>r.seo_score))],
+    ['Sin sitio web', rows.filter(r=>r.has_website==='no').length],
+    ['Sin HTTPS', rows.filter(r=>r.https==='no').length],
+    ['No responsive', rows.filter(r=>r.mobile_friendly==='no').length],
+    ['Contactados+', rows.filter(r=>r.status!=='nuevo' && r.status!=='descartado').length],
+  ];
+  $('kpis').innerHTML = cards.map(([lbl,num])=>
+    `<div class="kpi"><div class="num">${num}</div><div class="lbl">${lbl}</div></div>`).join('');
+}
+
+/* --- Filtros por vertical --- */
+function renderChips(){
+  const verticals = [...new Set(SEED.map(r=>r.vertical))];
+  const all = ['', ...verticals];
+  $('verticalChips').innerHTML = all.map(v=>{
+    const count = v ? DATA.filter(r=>r.vertical===v).length : DATA.length;
+    const label = v || 'Todos';
+    return `<span class="chip ${activeVertical===v?'active':''}" data-v="${v}">${label} (${count})</span>`;
+  }).join('');
+  $('verticalChips').querySelectorAll('.chip').forEach(c=>
+    c.onclick = ()=>{ activeVertical = c.dataset.v; renderChips(); renderRows(); });
+}
+
+/* --- Tabla --- */
+function filtered(){
+  const q = $('search').value.trim().toLowerCase();
+  const st = $('statusFilter').value;
+  return DATA.filter(r=>{
+    if(activeVertical && r.vertical!==activeVertical) return false;
+    if(st && r.status!==st) return false;
+    if(q){
+      const hay = [r.business_name,r.canton,r.contact_name,r.email].join(' ').toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  }).sort((a,b)=>{
+    let x=a[sortKey], y=b[sortKey];
+    if(!isNaN(x) && !isNaN(y)){ x=+x; y=+y; }
+    return x<y ? -sortDir : x>y ? sortDir : 0;
+  });
+}
+
+function renderRows(){
+  renderKpis(); renderChips();
+  const rows = filtered();
+  $('empty').hidden = rows.length>0;
+  $('rows').innerHTML = rows.map(r=>{
+    const idx = DATA.indexOf(r);
+    const sp = +r.page_speed||0, seo = +r.seo_score||0;
+    const bar = (v)=>`<span class="score"><span class="bar"><i style="width:${v}%;background:${scoreColor(v)}"></i></span>${v||'—'}</span>`;
+    const site = r.website
+      ? `<a href="${r.website}" target="_blank" rel="noopener" style="color:var(--accent)">${r.business_name}</a>`
+      : `${r.business_name} <span class="no" title="Sin sitio web">⚠</span>`;
+    return `<tr>
+      <td><span class="vtag">${r.vertical}</span></td>
+      <td>${site}</td>
+      <td>${r.canton}</td>
+      <td>${yesno(r.https)}</td>
+      <td>${yesno(r.mobile_friendly)}</td>
+      <td>${bar(sp)}</td>
+      <td>${bar(seo)}</td>
+      <td>${r.contact_name}<br><a class="wa" href="${waLink(r.whatsapp)}" target="_blank" rel="noopener">WhatsApp ↗</a></td>
+      <td><span class="status st-${r.status}">${r.status}</span></td>
+      <td class="actions">
+        <button class="ic" title="Editar" data-edit="${idx}">✎</button>
+        <button class="ic" title="Eliminar" data-del="${idx}">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+  $('rows').querySelectorAll('[data-edit]').forEach(b=> b.onclick=()=>openModal(+b.dataset.edit));
+  $('rows').querySelectorAll('[data-del]').forEach(b=> b.onclick=()=>{
+    if(confirm('¿Eliminar este prospecto?')){ DATA.splice(+b.dataset.del,1); save(); renderRows(); }
+  });
+}
+
+/* --- Modal añadir/editar --- */
+function openModal(idx){
+  editingIndex = (idx==null) ? null : idx;
+  const r = idx==null ? {} : DATA[idx];
+  $('modalTitle').textContent = idx==null ? 'Nuevo prospecto' : 'Editar prospecto';
+  FIELDS.forEach(f=>{ const el=$('f_'+f); if(el) el.value = r[f] ?? ''; });
+  if(idx==null){ $('f_https').value='no'; $('f_mobile_friendly').value='no'; $('f_status').value='nuevo'; }
+  $('modal').classList.add('open');
+}
+function closeModal(){ $('modal').classList.remove('open'); }
+function saveModal(){
+  const obj = {};
+  FIELDS.forEach(f=>{ const el=$('f_'+f); if(el) obj[f]=el.value.trim(); });
+  obj.has_website = obj.website ? 'si' : 'no';
+  if(editingIndex==null) DATA.push(obj); else DATA[editingIndex]=obj;
+  save(); closeModal(); renderRows();
+}
+
+/* --- CSV import / export --- */
+function toCSV(){
+  const esc = v => /[",\n]/.test(v??'') ? '"'+String(v).replace(/"/g,'""')+'"' : (v??'');
+  const head = FIELDS.join(',');
+  const body = DATA.map(r=>FIELDS.map(f=>esc(r[f])).join(',')).join('\n');
+  return head+'\n'+body;
+}
+function exportCSV(){
+  const blob = new Blob([toCSV()], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'outreach-targets-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click(); URL.revokeObjectURL(a.href);
+}
+function parseCSV(text){
+  // parser simple que respeta comillas
+  const rows=[]; let i=0, field='', row=[], inQ=false;
+  const pushF=()=>{ row.push(field); field=''; };
+  const pushR=()=>{ rows.push(row); row=[]; };
+  while(i<text.length){
+    const c=text[i];
+    if(inQ){
+      if(c==='"' && text[i+1]==='"'){ field+='"'; i+=2; continue; }
+      if(c==='"'){ inQ=false; i++; continue; }
+      field+=c; i++; continue;
+    }
+    if(c==='"'){ inQ=true; i++; continue; }
+    if(c===','){ pushF(); i++; continue; }
+    if(c==='\r'){ i++; continue; }
+    if(c==='\n'){ pushF(); pushR(); i++; continue; }
+    field+=c; i++;
+  }
+  if(field.length||row.length){ pushF(); pushR(); }
+  const head=rows.shift();
+  return rows.filter(r=>r.length>1).map(r=>Object.fromEntries(head.map((h,j)=>[h.trim(), r[j]??''])));
+}
+function importCSV(file){
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const parsed=parseCSV(reader.result);
+      if(!parsed.length){ alert('CSV vacío o inválido.'); return; }
+      DATA = parsed; save(); activeVertical=''; renderRows();
+      alert('Importados '+parsed.length+' prospectos.');
+    }catch(e){ alert('Error al leer CSV: '+e.message); }
+  };
+  reader.readAsText(file);
+}
+
+/* --- Wiring --- */
+$('addBtn').onclick = ()=>openModal(null);
+$('cancelBtn').onclick = closeModal;
+$('saveBtn').onclick = saveModal;
+$('modal').onclick = e=>{ if(e.target===$('modal')) closeModal(); };
+$('exportBtn').onclick = exportCSV;
+$('importBtn').onclick = ()=>$('fileInput').click();
+$('fileInput').onchange = e=>{ if(e.target.files[0]) importCSV(e.target.files[0]); e.target.value=''; };
+$('resetBtn').onclick = ()=>{ if(confirm('¿Restaurar los 15 prospectos de ejemplo? Se perderán tus cambios.')){ DATA=structuredClone(SEED); save(); renderRows(); } };
+$('search').oninput = renderRows;
+$('statusFilter').onchange = renderRows;
+document.querySelectorAll('th[data-sort]').forEach(th=>
+  th.onclick = ()=>{ const k=th.dataset.sort; sortDir = (sortKey===k)? -sortDir : 1; sortKey=k; renderRows(); });
+
+renderRows();
+</script>
+</body>
+</html>

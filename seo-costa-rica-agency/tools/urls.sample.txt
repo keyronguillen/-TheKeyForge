@@ -1,0 +1,6 @@
+# Lista de URLs a auditar (una por línea). Líneas con # se ignoran.
+# Reemplazá estas con los sitios reales de tus prospectos.
+# Estos ejemplos sirven para probar que el script corre de extremo a extremo:
+https://example.com
+https://example.org
+http://neverssl.com
